@@ -1,5 +1,5 @@
 rm(list = ls())
-setwd("G:\\math\\661")
+setwd("G:\\math\\514")
 
 coin.toss=function(p,num.tosses,num.trials){
 draws=runif(num.tosses*num.trials)
@@ -17,6 +17,10 @@ y = c(rep(0,m1),rep(1,m2))
 i = sample(1:nrow(data))
 return(list(x=data[i,],y=y[i]))
 }
+
+n=64
+m1=40; p1=.4;
+m2=60; p2=.5;
 
 
 n=6 
@@ -47,8 +51,24 @@ curve( dnorm(x,p2,sqrt(p2*(1-p2)/n))*m2 - dnorm(x,p1,sqrt(p1*(1-p1)/n))*m1 )
 abline( v = c(p1,p2) , col = "green")
 abline( h = 0 , col = "pink" )
 
+###
 
-############
+bayes.error=function(cut,n,m1,p1,m2,p2){
+  s1=sqrt(p1*(1-p1)/n)
+  s2=sqrt(p2*(1-p2)/n)
+  w1=m1/(m1+m2)
+  w2=1-w1
+  if(p1 < p2){
+    error=w2*pnorm(cut,p2,s2)+w1*(1-pnorm(cut,p1,s1))
+  }else{
+    error=w1*pnorm(cut,p1,s1)+w2*(1-pnorm(cut,p2,s2))
+  }
+  error
+}
+
+
+########################################################################
+
 rm(list = ls())
 
 coin.toss = function(p,num.tosses,num.trials){
