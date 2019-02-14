@@ -1,6 +1,10 @@
 ---
 title: "hw1"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+header-includes:
+   - \usepackage{verbatim}  
 ---
 
 ```{r setup, include=FALSE}
@@ -225,8 +229,96 @@ abline(h=mean(unlist(results)),col='blue')
 **Provide text answers to the following questions**
 
 - Q1 Step 1: In the function coin.toss, why is (draws < p) multiplied by 1?
+
+\ 
+
+
+  \begin{itemize}
+     \item[ ] Converts the vector of \verb|T/F| into numeric 1 or 0.
+\end{itemize}
+ 
+\ 
+
 - Q2 Step 2: In the function create.coin.toss.data, explain what the last two lines accomplish, other than returning the data to the caller
+ 
+\ 
+
+
+  \begin{itemize}
+     \item[ ] \verb|sample(1:nrow( data ) )| randomizes the vector of numbers from $1$ to $(m1+m2)$. Then the next line returns a list; the first component is the matrix of coin tosses which is now randomized according to \verb|i|. The second component a vector tracking what coin each row belongs to (because they were shuffled according to \verb|i|).
+\end{itemize}
+ 
+\ 
+
+
+
 - Q3 Step 4: In the histograms, what makes the colors translucent?
+
+ 
+\ 
+
+
+  \begin{itemize}
+     \item[ ] The alpha level at $\cfrac{1}{4}$. 
+\end{itemize}
+ 
+\ 
+
+```{r}
+rgb
+```
+
+\ 
+
+
 - Q4 Step 6: In the function bayes.cut.norm, what does the argument c(p1,p2) to uniroot do and why is it a reasonable choice?
+
+  
+\ 
+
+
+  \begin{itemize}
+     \item[ ] It sets an interval for the uniroot function to find where the function is equal to 0. This is reasonable because $d(x) = 0$ should be between p1 and p2. However, it may not always work. 
+\end{itemize}
+ 
+\ 
+
+```{r, out.width="7 in", out.height="3.25  in", cache = F}
+n=6 ;  m1=4; p1=.35;  m2=6; p2=.5; par(mar = c(0,4,0,2) )
+
+curve( dnorm(x,p2,sqrt(p2*(1-p2)/n))*m2 - dnorm(x,p1,sqrt(p1*(1-p1)/n))*m1 , ylab='') 
+abline( v = c(p1,p2) , col = "blue");  abline( h = 0 , col = "red" )
+```
+
+\ 
+
+  \begin{itemize}
+     \item[ ]  We can play around with the parameters, and the \verb|uniroot| function will fail. However, in this case it looks relatively easy to solve. We can use the \verb|optimize| function to get the interval to be the minimum on the left and the maximum on the right.
+
+\end{itemize}
+ 
+ \ 
+
 - Q5 Step 7: In the function bayes.error, why is there a check for p1 < p2?
+ 
+ \ 
+ 
+   \begin{itemize}
+     \item[ ]  The check for \verb|p1 < p2| determines that we are going to get the correct area under the curves. We make sure the location parameters are in the correct order so we get the appropriate distribution tails.
+
+\end{itemize}
+ 
+\ 
+
+
 - Q6 Step 8: The function bayes.1d.accuracy is very compact. Explain the steps to computing accuracy.
+  
+ \ 
+ 
+   \begin{itemize}
+     \item[ ] 
+ 
+ We take the row means of the randomized row outcome matrix. We compare each mean to the Bayes' cut. This returns an \verb|F/T| vector, but we use \verb|as.integer| to convert it into numeric 0/1. Then we compare it to the "truth" vector, the vector that tracked what coin each row belonged to. Then we sum this truth comparison vector (with \verb|T = 1|) and divide it by the total number of experiments conducted. This gives the accuracy as a percentage of how many experiments the Bayes classifier had correct.
+
+\end{itemize}
+  

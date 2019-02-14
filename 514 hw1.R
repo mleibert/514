@@ -25,6 +25,10 @@ m2=60; p2=.5;
 
 n=6 
 m1=4; p1=.35;
+m2=6; p2=.75;
+
+n=6 
+m1=4; p1=.35;
 m2=6; p2=.5;
 
 # n=64
@@ -43,7 +47,7 @@ bayes.cut.norm=function(n,m1,p1,m2,p2){
 }
 
 
-
+rgb
 
 bayes.cut.norm(n,m1,p1,m2,p2)
 
@@ -53,18 +57,58 @@ abline( h = 0 , col = "pink" )
 
 ###
 
-bayes.error=function(cut,n,m1,p1,m2,p2){
+bayes.error=function(Cut,n,m1,p1,m2,p2){
   s1=sqrt(p1*(1-p1)/n)
   s2=sqrt(p2*(1-p2)/n)
   w1=m1/(m1+m2)
   w2=1-w1
   if(p1 < p2){
-    error=w2*pnorm(cut,p2,s2)+w1*(1-pnorm(cut,p1,s1))
+    error=w2*pnorm(Cut,p2,s2)+w1*(1-pnorm(Cut,p1,s1))
   }else{
-    error=w1*pnorm(cut,p1,s1)+w2*(1-pnorm(cut,p2,s2))
+    error=w1*pnorm(Cut,p1,s1)+w2*(1-pnorm(Cut,p2,s2))
   }
   error
 }
+
+
+(runif(13)  > .5)*1
+
+kut=bayes.cut.norm(n,m1,p1,m2,p2) 
+kut
+ 
+b.err=bayes.error(kut,n,m1,p1,m2,p2) 
+b.err
+
+bayes.1d.accuracy=function(X,y,cut){
+  sum(as.integer(rowMeans(X) > cut)==y)/length(y)
+}
+
+library(zeallot)
+
+c(X,Y) %<-% create.coin.toss.data(n,m1,p1,m2,p2)
+
+sum( as.integer( rowMeans(X) > kut ) == Y  ) /
+ length(Y)
+
+
+
+
+bayes.1d.accuracy=function(X,y,cut){
+  sum(as.integer(rowMeans(X) > cut)==y)/length(y)
+}
+
+
+
+results=list(mode='vector')
+
+for (i in 1:30){
+  c(x,y) %<-% create.coin.toss.data(n,m1,p1,m2,p2)
+  results[[i]]=1-bayes.1d.accuracy(x,y,cut)
+}
+plot(unlist(results),ylim=c(0,1)); 
+abline(h=b.err,col='red');
+abline(h=mean(unlist(results)),col='blue')
+
 
 
 ########################################################################
@@ -81,19 +125,15 @@ n = 8
 m1 = 6
 p1 = .35
 m2 = 4
-p2 = .43
+p2 = .13
  
-
-bayes.discriminant=function(x,n,m1,p1,m2,p2){
-	s1=sqrt(p1*(1-p1)/n); s2=sqrt(p2*(1-p2)/n)
-	dnorm(x,p2,s2)*m2 - dnorm(x,p1,s1)*m1
-}
+curve( dnorm(x,p2,sqrt(p2*(1-p2)/n))*m2 - dnorm(x,p1,sqrt(p1*(1-p1)/n))*m1 )
+abline( v = c(p1,p2) , col = "blue"); abline( h = 0 , col = "red" )
 
 S1=sqrt(p1*(1-p1)/n); S2=sqrt(p2*(1-p2)/n)  
-fff <- function(y){ dnorm(y,p2,S2)*4 -  dnorm(y,p1,S1)*m1  }
+fff <- function(y){ dnorm(y,p2,S2)*m1 -  dnorm(y,p1,S1)*m1  }
 
 plot(fff , xlim= c( -.5, 1.2))
-
 
 # finding the right starting points for optimize is not easy
 # brute way to find decent starting points
@@ -105,8 +145,8 @@ Up <-  optimize( fff , lower = Low , upper = Up , maximum = T )$max
 
 abline( v =  Low , col = "blue" )
 abline( v =  Up, 	 col = "blue" )
-abline( h = uniroot(fff,c(Low ,Up))$root, col = "pink" )
- uniroot(fff,c(Low ,Up))$root
+abline( h = uniroot(fff,c(Low ,Up))$root, col = "red" )
+uniroot(fff,c(Low ,Up))$root
 
 
 bayes.cut.norm=function(n,m1,p1,m2,p2){
