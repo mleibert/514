@@ -5,6 +5,12 @@ output:
   html_document:
     df_print: paged
 geometry: margin=.75 in
+header-includes:
+   - \usepackage{cancel}
+   - \usepackage{multirow,setspace}
+   - \usepackage{bm}
+   - \usepackage{amsmath}
+   - \usepackage{mathtools}
 ---
 
 **Homework 2 Problem Statement**
@@ -22,6 +28,10 @@ Create a chunk to do the following:
 - print.fun('name') will print the named function. Use this function to display the code for print.fun and perceptron.box.data
 
 ```{r}
+rm(list = ls())
+options(scipen= 999)
+setwd("G:\\math\\514")
+
 source('./hw2_514.R')
 ```
 
@@ -45,9 +55,9 @@ The gap between the datasets is 2*gamma.
 
 ```{r}
 set.seed(123)
-gamma=.05
-data=perceptron.box.data(100,gamma);
-plot.perceptron.box.data(data);
+gamma <- .05
+dat  <- perceptron.box.data( 100, gamma, 123 ) 
+plot.perceptron.box.data(dat );
 ```
 
 **Step 3 Write functions to train and test the vanilla perceptron**
@@ -68,9 +78,20 @@ Comments in the homework fill explain the inputs and outputs the functions shoul
 use the abline function in R to plot the decision boundary 
 
 ```{r}
- y = data[,ncol(data)]
- x = data[,-ncol(data)]
-  
+source("perceptron_functions_hw.R")
+ y = dat[,ncol(dat )]
+ x = dat[,-ncol(dat )]
+
+# Wrote the plot as an argument to the function
+# Did not want a global b & w running around
+train.perceptron(x,y, Plot = T)
+vanilla <- train.perceptron(x,y)
+
+test.dat  <- perceptron.box.data( 100, .05 , seed = 1) 
+predict.perceptron(vanilla$w,vanilla$b, test.dat[,-3] )
+
+plot.perceptron.box.data( test.dat ) 
+abline( -vanilla$b/  vanilla$w[2] ,  - vanilla$w[1] /  vanilla$w[2] )
 ```
 
 
@@ -78,10 +99,41 @@ use the abline function in R to plot the decision boundary
 **Step 4 Test vanilla perceptron on out of sample data and plot**
 Using a gamma of .05, generate an out of sample data set using perceptron.box.data (100 observations). Use your *predict.perceptron* function to classify the out of sample data check performance. Use a plot to visually cross-check your performance.
 ```{r}
-    
- 
-  gamma=.05
-  test=perceptron.box.data(100,gamma);
+
+# at gamma = 0.05 there are no misclassification
+test.dat  <- perceptron.box.data( 100, .05  , seed = 2) 
+plot.test.dat <- as.data.frame( cbind(test.dat , 
+
+predict.perceptron(vanilla$w,vanilla$b, test.dat[,-3] )$w ) )
+
+plot.test.dat$V5 <-  (plot.test.dat$V4 == plot.test.dat$V3 ) 
+plot.perceptron.box.data( test.dat ) 
+
+predict.perceptron(vanilla$w,vanilla$b, test.dat[,-3] )$w   ==  test.dat[,3]
+
+points( plot.test.dat[ which( plot.test.dat$V5 == F ), ]$V1,
+	plot.test.dat[ which( plot.test.dat$V5 == F ), ]$V2,
+	col="green", bg="green" , pch = 24)
+abline( -vanilla$b/  vanilla$w[2] ,  - vanilla$w[1] /  vanilla$w[2] )
+
+# at gamma = .00005 there is misclassification
+dat  <- perceptron.box.data( 100, .00005  , seed = 2) 
+vanilla <- train.perceptron(dat[,-3],dat[,3])
+
+test.dat  <- perceptron.box.data( 100, .00005  , seed = 111) 
+plot.test.dat <- as.data.frame( cbind(test.dat , 
+
+predict.perceptron(vanilla$w,vanilla$b, test.dat[,-3] )$w ) )
+
+
+predict.perceptron(vanilla$w,vanilla$b, test.dat[,-3] )$w   ==  test.dat[,3]
+
+plot.test.dat$V5 <-  (plot.test.dat$V4 == plot.test.dat$V3 ) 
+plot.perceptron.box.data( test.dat ) 
+points( plot.test.dat[ which( plot.test.dat$V5 == F ), ]$V1,
+	plot.test.dat[ which( plot.test.dat$V5 == F ), ]$V2,
+	col="green", bg="green" , pch = 24)
+abline( -vanilla$b/  vanilla$w[2] ,  - vanilla$w[1] /  vanilla$w[2] )
 
 ```
 
@@ -97,7 +149,33 @@ Compute the theoretical limit for each gamma and plot this against the avg. empi
 
 
 ```{r}
+gm <- gmm <- theor <-  theorm <- rep(NA,10)
+ 
+for( i in 1:length( seq(.1,1,length.out = 10) ) ){
 
+	gamma <- seq(.1,1,length.out = 10)[i]
+ 	dat <- perceptron.box.data( 100, gamma , seed = runif(1 , 1 , 1e8)  ) 
+	trained <- train.perceptron( dat[,-3] , dat[,3] )
+
+	for( j in 1:10){
+		PBD  <- perceptron.box.data(100, gamma, seed = runif(1, 1 , 1e8)) 
+		PPBD <- predict.perceptron(  trained$w , trained$b , PBD[,-3] ) 
+		gm[j] <- length( which( ( PBD[,3] == PPBD$w)  == F ) )
+		theor[j] <- max( (4 / gamma^2 ) * apply(PBD[,-3] , 1, 
+				function(W) norm(W,"2")))
+
+	}  
+	gmm[i] <- mean(gm)
+	theorm[i] <- mean(theor ) 
+}
+
+err <- data.frame(  seq(.1,1,length.out = 10)  , gmm , theorm)
+colnames(err) <- c("gamma" , "errors", "theoretical")
+
+plot( err[,1] , err[,3] , col = "red" ,xlab=expression(gamma) )
+lines(err[,1] , err[,3], col = "red"  )
+points( err[,1] , err[,2], col = "blue"  )
+lines(err[,1] , err[,2], col = "blue"  )
 ```
 
 
@@ -113,9 +191,17 @@ Then train and test the voted perceptron using these functions on sample data of
 Voted perceptron outputs an ensemble of weights and survival times which are used to made a decision.  You might find it helpful to use more functions to make your code easy to debug.
 
 ```{r}
+source("perceptron_functions_hw.R")
+
 print.fun('freund.voted.perceptron.train');
 
-data=perceptron.box.data(100,.1);
+train.dat = perceptron.box.data(100,.1, seed = 123)
+
+vote.train <- freund.voted.perceptron.train( train.dat[,-3] , train.dat[,3] )
+
+test.dat <- perceptron.box.data(100,.1, seed = 321)
+
+predict.voted( vote.train$w ,  vote.train$cc , vote.train$b , test.dat[,-3] ) == test.dat[,3]
 
 
 ```
@@ -131,9 +217,22 @@ Plot vanilla perceptron using a black line and avg perceptron using a red line a
 ```{r}
 print.fun('avg.perceptron.train');
  gamma=.05
-  data=perceptron.box.data(100,gamma);
-  y = data[,ncol(data)]
-  x = data[,-ncol(data)]
+  dat=perceptron.box.data(100,gamma, seed = 1);
+  y = dat[,ncol(dat)]
+  x = dat[,-ncol(dat)]
+
+avg <- avg.perceptron.train(x , y)
+
+vanilla <- train.perceptron(x,y)
+
+test.dat <- perceptron.box.data(100,gamma, seed = 2)
+
+predict.perceptron( avg$w , avg$b , test.dat[ ,-3] )$w == test.dat[,3]
+
+plot.perceptron.box.data( test.dat )
+abline( -vanilla$b/  vanilla$w[2] ,  - vanilla$w[1] /  vanilla$w[2] , col = "black" )
+abline( -avg$b/  avg$w[2] ,  - avg$w[1] /  avg$w[2] , col = "red" )
+legend(.8,-.5,legend=c("Average", "vanilla"), bty = "n",    col=c("red", "black"), lty=1:1, xpd=T)
 
 ```
 
@@ -145,6 +244,40 @@ Bishop's section on Fisher discriminant might be useful to you: https://www.micr
 In order to make this document a self-contained piece of reproducible research enter the equations describing the calculations in the *fisher* function.
 
 **Enter latex here using codecogs and put it in double $ for it to be rendered in markdown.**
+
+\vspace{2 em}
+
+\begin{minipage}[t]{82.5 mm}
+\hfil \(\displaystyle   { \bm m }_1  = \cfrac{1}{N_1} \sum_{n \in C_1 }  { \bm x }_n \)
+\end{minipage}
+\begin{minipage}[t]{82.5 mm}
+\hfil \(\displaystyle   { \bm m }_2  = \cfrac{1}{N_2} \sum_{n \in C_2 }  { \bm x }_n \)
+\end{minipage}
+
+\
+
+\begin{align*}
+S_i &= \sum_{n \in C_i } (  { \bm x }_n - { \bm m }_i ) (  { \bm x }_n - { \bm m }_i )^T 
+\end{align*}
+
+
+\begin{align*}
+S_W &= \sum_{n \in C_1 } (  { \bm x }_n - { \bm m }_1 ) (  { \bm x }_n - { \bm m }_1 )^T +
+  \sum_{n \in C_2 } (  { \bm x }_n - { \bm m }_2 ) (  { \bm x }_n - { \bm m }_2 )^T \\[.5 em]
+  &= S_1 + S_2
+\end{align*}
+
+\begin{align*}
+{ \bm w } & \sim S^{-1}_w (   { \bm m }_1 - { \bm m }_2 ) 
+\end{align*}
+
+\begin{align*}
+{ \bm m }_j &= \cfrac{1}{n_1 + n_2} \Big( n_1{ \bm m }_1  + n_2 { \bm m }_2 \Big)
+\end{align*}
+
+
+\vspace{4 em}
+
 
 
 **Step 9 Compare fisher to vanilla and avg perceptron for non-separable data**
@@ -164,12 +297,22 @@ In order to make this document a self-contained piece of reproducible research e
 ```{r}
 
   print.fun('fisher')
-  data=perceptron.box.data(100,-.05);
-  y = data[,ncol(data)]
-  x = data[,-ncol(data)]
+  dat = perceptron.box.data(100,-.1);
+  y = dat[,ncol(dat)]
+  x = dat[,-ncol(dat)]
   
+fd <- fisher( x , y )
+fisher.2d.line( fd$w,fd$m )
 
-  
+avg <- avg.perceptron.train(x , y)
+vanilla <- train.perceptron(x,y)
+
+test.dat <- perceptron.box.data(100, -.1 , seed = 2)
+plot.perceptron.box.data( test.dat ); 
+abline( -vanilla$b/  vanilla$w[2] ,  - vanilla$w[1] /  vanilla$w[2] , col = "black" )
+abline( -avg$b/  avg$w[2] ,  - avg$w[1] /  avg$w[2] , col = "red" )
+abline( fisher.2d.line( fd$w,fd$m )$a , fisher.2d.line( fd$w,fd$m )$b , col = "purple" )
+legend(.8,-.5,legend=c("Average", "vanilla", "Fisher"), bty = "n",  col=c("red", "black", "purple"), lty=1:1, xpd=T)
 
 ```
 
@@ -181,12 +324,40 @@ Use this function to compare the 3 models on out of sample data.
 
 Similar to experiments in other homeworks generate 10 trials of different data samples with gamma of -.05 and compare the mean margins of the points for the 3 decision boundaries learned earlier.
 
-Which model seems to perform best (largest positive margin)?
+Which model seems to perform best (largest positive margin)? 
+
 
 ```{r}
-
-
+dat=perceptron.box.data(100,.05 , 1);
+y = dat[,ncol(dat)]
+x = dat[,-ncol(dat)]
   
+fd <- fisher( x , y )
+avg <- avg.perceptron.train(x , y)
+vanilla <- train.perceptron(x,y)
+
+test.dat <- perceptron.box.data(100, .05 , seed = 2)
+y = test.dat[,3]
+x = test.dat[,-3]
+
+
+margin( x , y , vanilla$w , vanilla$b )
+margin( x , y , avg$w , avg$b )
+margin( x , y ,  -fd$w ,   sum(fd$w *fd$m)  )
+
+
+Vm <- Am <- Fm <- rep(NA, 10)
+
+for( i in 1:10){
+	test.dat <- perceptron.box.data(100, -.05 , seed = i)
+	y = test.dat[,3]; x = test.dat[,-3]
+	Vm[i] <- margin( x , y , vanilla$w , vanilla$b )
+	Am[i] <- margin( x , y , avg$w , avg$b )
+	Fm[i] <- margin( x , y , -fd$w ,  sum(fd$w *fd$m)    )
+}
+
+mean(Vm); mean(Am); mean(Fm)
 ```
 
+It looks as if the Fisher one is doing the best.
 

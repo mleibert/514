@@ -1,11 +1,12 @@
 rm(list = ls())
 options(scipen= 999)
-
 setwd("G:\\math\\514")
-
 source( "hw2_514.R" )
+set.seed(123)
+gamma <- .05
+traindat  <- perceptron.box.data( 100, gamma ) 
+source("perceptron_functions_hw.R")
 
- 
 
 
 #print.fun('print.fun')
@@ -93,7 +94,7 @@ err <- data.frame(  sort(rep(seq(.1,1,length.out = 10),10)) , blerg )
 colnames(err) <- c("gamma" , "errors")
 
 
-4*( 3.026267 ^2 ) / .1^-2
+4*( 3.026267 ^2 ) / .6^2
  
   norm(   perceptron.box.data( 100, gamma )[,-3]  , "2" )
 
@@ -105,7 +106,7 @@ max( apply( dat , 1 , function(v) norm(v ,"2") ) )
 
 dat <- perceptron.box.data( 100, .1 )
 
- 
+ dat <- traindat  
 	
 X <- dat[,-3]
 	v  <- rep(0, dim(X)[2] )
@@ -221,9 +222,8 @@ setwd("G:\\math\\514")
 
 source( "hw2_514.R" )
 
-dat <- perceptron.box.data( 100, .1 )
 
-
+dat <- traindat  
 
 tail(dat)
 
@@ -231,7 +231,7 @@ dat1 <- dat[ which( dat[,3] == 1 ) , ]
 X1 <- cbind(   dat1[ , -3] )
 n1 <- nrow( dat1  )
 m1 <- (1 / n1 ) * apply( X1 , 2 , sum)
-s1 <- var(X1)
+s1 <- var(X1) * ((n-1)/n)
  
 
 dat2 <- dat[ which( dat[,3] == -1 ) , ]
@@ -245,26 +245,34 @@ Sw <- s1 + s2
 w <- solve(Sw)%*%( m2-m1 )
 m <- 1/(n1+n2) * ( n1*m1 + n2*m2 )
  
- 
-plot.perceptron.box.data( dat  )
- 
-abline(   1.136903 ,  0.6074181 )
+vW <- train.perceptron( traindat[,-3] , traindat[,3 ] )
+aW <- avg.perceptron.train( traindat[,-3] , traindat[,3 ] )
+fW <- fisher(  traindat[,-3] , traindat[,3 ] )$w
+fM <- fisher(  traindat[,-3] , traindat[,3 ] )$m
 
-solve(w[2],1.2)
+###  ###  ###  ###  ###  ###  ###  ### 
 
- 
-fisher.2d.line(w)
 
-colnames(dat) <- LETTERS[1:3]
-library(MASS)
-  lda(C ~ ., data=as.data.frame(dat) )
- 
-
- fisher.2d.line(w,m)
-
+set.seed(2); newdat <- perceptron.box.data( 100, -.1 ) 
+plot.perceptron.box.data( newdat  )
 
  
  
+abline( -vW$b /  vW$w[2] ,  -vW$w[1] / vW$w[2] )
+abline( fisher.2d.line(fW ,fM )$b ,fisher.2d.line(fW ,fM )$a,col = "purple" )
+abline( -aW$b /  aW$w[2] ,  -aW$w[1] / aW$w[2] , col = "red" )
+
+newdat
+
+
+ margin( newdat[,-3] , newdat[,3] , vW$w, vW$b )
+ margin( newdat[,-3] , newdat[,3] , aW$w, aW$b )
+ margin( newdat[,-3] , newdat[,3] , fW , fisher.2d.line(fW ,fM )$b )
+
+
+
+
+
 
 
 

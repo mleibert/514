@@ -45,7 +45,8 @@ perceptron.box.data=function(n,gamma=.25,seed=NULL){
 plot.perceptron.box.data=function(data,title='perceptron'){
   col=data[,3]+3
   col=c("red","blue")[col/2]
-  
+par(mar=c(6.1, 4.1, 4.1, 2.1), xpd=F)
+
   plot(data[,1],data[,2],type="p",col=col,pch=16,main=title,ylim=c(min(data[,2]),max(data[,2])),xlim=c(min(data[,1]),max(data[,1])))
 }
 
