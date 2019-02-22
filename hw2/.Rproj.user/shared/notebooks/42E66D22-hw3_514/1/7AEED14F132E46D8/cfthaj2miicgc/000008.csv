@@ -1,0 +1,5 @@
+"0","h2=hist(xin[y==1], col=rgb(0,0,1,1/4), xlim=c(0,4),ylim=c(0,30), add=T)
+"
+"2","Error in rect(x$breaks[-nB], 0, x$breaks[-1L], y, col = col, border = border,  : 
+  plot.new has not been called yet
+"

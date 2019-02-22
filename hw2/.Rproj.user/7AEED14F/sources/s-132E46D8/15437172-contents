@@ -1,0 +1,201 @@
+---
+title: "hw3_514"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Homework 3 Problem Statement**
+
+Implement gradient descent for a logistic model using the squared error (SE) and the negative log likelihood (NLL) cost functions. The most important functions in your solution are
+
+- b.prop: Computes the gradient of the cost function wrt to adjustable parameters b and w. Your solution should be "vectorized" and use vector/matrix operations to compute the gradient for the entire dataset on each call. 
+- f.prop: Computes model outputs. Your solution should be "vectorized"
+- log.fit: Implements a simple gradient descent loop given fixed learning rate and the number of iterations
+- cost: Compute cost for the entire data set
+
+A good reference on logistic regression algorithms is [Andre Ng's lecture notes on logistic regression](http://cs229.stanford.edu/notes/cs229-notes1.pdf) 
+
+**Step 1 Generate data **
+
+Source the provided hw3_514.R file.  Use the function generate.1d.dataset to create a dataset.  This function creates a 1 dimensional gaussian mixture dataset. A few plots are provided to visualize the data.
+
+```{r}
+source('./hw3_514.R')
+set.seed(1234)
+require(MASS)
+m1=50;mu1=1;s1=.5
+m2=50;mu2=2;s2=.7
+c(xin,y) %<-% generate.1d.dataset(m1,mu1,s1,m2,mu2,s2)
+plot(xin,col=y+3)
+bayes.cut2=function(mu1,s1,mu2,s2){
+  ff=function(x){dnorm(x,mu2,s2) - dnorm(x,mu1,s1)}
+  uniroot(ff,c(mu1,mu2))$root
+}
+
+cut=bayes.cut2(mu1,s1,mu2,s2)
+abline(h=cut)
+h1=hist(xin[y==0], col=rgb(0,1,0,1/4), xlim=c(0,4),ylim=c(0,30))
+h2=hist(xin[y==1], col=rgb(0,0,1,1/4), xlim=c(0,4),ylim=c(0,30), add=T)
+abline(v=cut)
+error=.5*pnorm(cut,mu2,s2)+.5*(1-pnorm(cut,mu1,s1))
+error
+
+```
+
+
+**Step 2 Cost Functions and Model Output Function**
+
+Typeset the equations for the negative log likelihood (NLL) and squared error (SE) cost functions. After documenting the calculations,
+implement (complete stubs) the code. The cost functions take the entire x and y datasets as input (plus other arguments) and should be vectorized. Make sure to divide your total cost by the number of samples.
+
+Typeset the equation for the model output probabilities. The model output function (f.prop) takes the full x dataset, along with model parameters and computes an output probability for every sample. Your code should be vectorized.
+
+```{r}
+f.prop
+nll <- function()
+```
+
+
+
+**Step 3 gradient calculations with Numerical Check **
+
+Derive and typeset the gradient equations (w.r.t. model parameters) for both cost functions. After documenting the calculations, implement (complete stubs) the code to return the gradients in a function called b.prop. b.prop takes as input the entire x and y datasets, yhat (predictions returned from f.prop) and a boolean called neg.log, when this is TRUE b.prop should return gradient for NLL otherwise SE. Implement your gradient code in a vectorized solution. Make sure to divide your total gradient by the number of samples.
+
+To test your gradient functions, implement a function called num.gradient which takes as input the cost function,x,y,b,w,a tolerance (eps) and a boolean to indicate which cost function to use. 
+
+Compare the numerical gradient of your cost functions with the output of your gradient functions to show your gradient function is correct for both 1.d data and 2.d data.
+
+Also implement a function called predict that will take as input b,w, and X and return predictions using the logistic model that you can use to predict outcomes using your model and classify points with predicted probability >0.5 as 1 else 0.
+
+
+
+```{r}
+c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
+x=t(xin)
+neg.logll=TRUE
+
+```
+
+
+**Step 4 Optimizer/Gradient Descent**
+
+Next code the log.fit stub. This function should include a learning rate parameter, a flag indicating which cost function to use and the number of iterations. This function should return a complete list of generated data:
+- history of (b,w)
+- history of cost
+- history of gradient norm
+- Use print fun to display code in log.fit
+
+```{r}
+print.fun('log.fit')
+
+```
+
+
+**Step 5 **
+Using the data set from step 1 build a model using your log.fit function and optimize the NLL cost function. use 2000 iterations and a learning rate eta of 0.25 
+
+- Compute the accuracy of the final model on the training plot, how does it compare to the bayes error from step 1?
+- plot the cost history of the solution
+- plot weight history
+- plot gradient history and performance history of the model
+- plot a contour plot of the b values, w values and cost function using the contour plot in r with 50 levels and draw a line showing the weight history on top of the contour plot in red using lines, type='o' and pch=16, col='red'
+
+```{r}
+c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
+
+x=t(xin)
+lr=.25
+neg.logll=TRUE
+
+```
+
+
+**Step 6 **
+
+Using the data set from step 1 build a model using your log.fit function and optimize the SE (squared error) cost function. use 2000 iterations and a learning rate eta of 0.25.  
+
+- Compute the accuracy of the final model on the training plot
+- plot the cost history of the solution
+- plot weight history
+- plot gradient history and performance history of the model
+- plot a contour plot of the b values, w values and cost function using the contour plot in r with 50 levels
+- plot a contour plot of the b values, w values and cost function using the contour plot in r with 50 levels and draw a line showing the weight history on top of the contour plot in red using lines, type='o' and pch=16, col='red'
+
+
+
+```{r}
+x=t(xin)
+lr=.25
+neg.logll=FALSE
+
+
+```
+**Step 7 Compare performance of NLL and SE **
+
+Plot the performance histories of the 2 cost functions side by side with different colors and legend (red for SE and blue line for NLL)
+
+```{r}
+
+```
+
+
+**Step 8  **
+
+Generate a 2-d data set using generate.2d.dataset function and use log.fit (gradient descent) to build a model using the NLL cost function. As this data set is 2-d instead of creating a contour plot plot the decision boundary using a grid of values for the x1 and x2 in the data set as the axis.  Use a learning rate, eta, of .25 and 2000 iterations.
+
+- Compute the accuracy of the final model on the training plot
+- plot the cost history of the solution
+- plot weight history
+- plot gradient history and performance history of the model
+- plot the decision boundary for x1 and x2 variables in the data
+- compute the accuracy of the model on 10 out of sample data sets generated using the same function and compute the mean accuracy out of sample.  Is it lower than training accuracy?
+
+```{r}
+# 2d, 
+  c(xin,y) %<-% generate.2d.dataset(n1=30,m1=c(1,1),c1=diag(c(1,1)),n2=70,m2=c(3,3),c2=c(1,1))
+  x=t(xin)
+
+  
+```
+
+
+**Step 9 **
+
+Setting the learning rate is one of the most important parameter in models.  In this step you will run an experiment to evaluate a range of learning rates using the NLL cost and plot the cost histories.
+
+- Use the same 1-d dataset used earlier for training and run your gradient descent optimizing NLL and save histories for each learning rate.  Use learning rates of .01,.025,2.5, and 5 for your experiments.
+- Plot the cost histories for each learning rate 
+- Create a contour plot and overlay it with a red line for the wgt history for the learning rate of 5.
+
+```{r}
+cost_history=vector(mode='list')
+wgt_history=vector(mode='list')
+perf_history=vector(mode='list')
+hist=vector(mode='list')
+c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
+neg.logll=TRUE
+
+```
+**Step 10 **
+
+Repeat the learning rate exploration using SE cost function using the same experimental setup from step 9 except use a learning rate of 25 instead of 5. Produce the 2 plots for cost histories by learning rate and contour plot with wgt history red line for the learning rate of 25.
+
+
+```{r}
+cost_history=vector(mode='list')
+wgt_history=vector(mode='list')
+perf_history=vector(mode='list')
+hist=vector(mode='list')
+c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
+neg.logll=FALSE
+counter=1
+lr=c(.01,.025,.25,.5,2.5,5,25)
+
+
+
+```

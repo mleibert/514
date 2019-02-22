@@ -1,0 +1,5 @@
+source('./hw3_514.R')
+set.seed(1234)
+f.prop
+NLL
+generate.1d.dataset()
