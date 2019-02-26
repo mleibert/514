@@ -59,14 +59,14 @@ generate.2d.dataset=function(n1=30,m1=c(1,1),c1=diag(c(1,1)),n2=70,m2=c(3,3),c2=
 
 # this function is not used by logistic code - it is used to look as cost as a function of b,w
 cost=function(x,y,b,w,neg.logll=TRUE){
-  yhat=f.prop(x,b,w)
+  yhat=f.prop(x,b,w,neg.logll=neg.logll)
   m = length(yhat)
   if(neg.logll){
     #cost=(-1/m)*sum(y*log(yhat)+(1-y)*log(1-yhat))
     cost=(-1/m)*(sum(log(yhat[y==1]))+sum(log(1-yhat[y==0])))
   }else{
     e = matrix(y - yhat,ncol=1)
-    cost=(1/2*m)*sum(e^2)
+    cost=(1/(2*m) )*sum(e^2)
   }
   cost
 }
