@@ -3,19 +3,21 @@ set.seed(1234)
 setwd("G:\\math\\514")
 source("hw3_514.R")
 require(MASS)
- 
+
+m1=50;mu1=1;s1=.5
+m2=50;mu2=2;s2=.7
+c(xin,y) %<-% generate.1d.dataset(m1,mu1,s1,m2,mu2,s2)
+dat <- list(x=xin,y=y)
+
 dat<-generate.1d.dataset(); w0 <- rnorm( ncol( dat$x ) )
 #dat<-generate.2d.dataset(); w0 <- rnorm( ncol( dat$x ) )
 b0 <- rnorm(1)
 
-
+ 
 neg.logl  <- function( x ,  y , b , w ){
 	-log( sigmoid(b+ x %*% w) )*y - (1-y)*log( sigmoid(b+ x %*% w) ) }
 
-f.prop <- function(x, b, w, neg.logll=T){
-	if(neg.logll){ f.prop = sigmoid(x%*%w +b  )} else 
-		{f.prop =  x%*%w +b }
-	f.prop  }
+f.prop <- function(x, b, w ){	 sigmoid(x%*%w +b  )  }
 
 b.prop <- function(x,y,yhat,b,w,neg.logll=T){
 	if( neg.logll == T) {e <- apply(x , 1 , function(R) 
@@ -32,15 +34,16 @@ b.prop( x = dat$x , y = dat$y , yhat= 1 , b=b0 ,w= w0 ,neg.logll=F)
  
 num.gradient <- function(cost,x,y,b,w,h=1e-8, neg.logll=T )  {
 	db <- ( cost(x, y , b + h , w , neg.logll  =  neg.logll   ) - 
-		cost(x, y , b , w   , neg.logll =   neg.logll   ) ) / h
-	dw<-wH<-w0
+		cost(x, y , b - h , w   , neg.logll =   neg.logll   ) ) / (2*h)
+	dw<-w0
 	for( i in 1:length(w) ) {
-		wH<-w;	wH[i] <- wH[i]+h
-		dw[i] <- (cost(x, y , b , wH , neg.logll =  neg.logll      ) - 
-		cost(x, y, b, w  , neg.logll =   neg.logll    ))/ h  }
+		wP <- wM <-w; wP[i] <- wP[i]+h; wM[i] <- wM[i]-h
+		dw[i] <- (cost(x, y , b , wP , neg.logll =  neg.logll ) - 
+		cost(x, y, b, wM  , neg.logll =   neg.logll ) ) / (2*h)  }
 	return( list(db = db, dw = dw ) )} 
 
-num.gradient(cost,x = dat$x ,dat$y,b0 ,w0  ,h = .00001,neg.logll=F )
+num.gradient(cost,x = dat$x ,dat$y,b0 ,w0  ,h = .00001,neg.logll=T )
+b.prop( x = dat$x , y = dat$y , yhat= 1 , b=b0 ,w= w0 ,neg.logll=T)
 
 
 Predict <- function(x,b,w){return( ifelse( f.prop(x,b,w) > .5 ,  1 , 0 ) )}
@@ -63,8 +66,7 @@ log.fit <- function( x ,y , neg.logll = T , eta=.25, Nsim = 2000,
 	 #if( abs( b[i] - b[i+1] ) < .00001 & ( norm( w[i+1] , "2" ) - 
 	 #	norm( w[i ] , "2" ) ) <  .00001 ){ break }
 	}
-		#print(i)
-		return( list( b = b[i], w = w[i,], W = w[1:i,], B = b[1:i],
+	return( list( b = b[i], w = w[i,], W = w[1:i,], B = b[1:i],
 		cost = Costs[!is.na(Costs)], gradnorm = apply( 	cbind(b[1:i], 
 		w[1:i,]) , 1 , function(N) norm(N, "2")  ) ) )}
 
@@ -94,32 +96,42 @@ error
 ################################# #####################################
 
 
-fit <- log.fit( dat$x , dat$y ,neg.logll=T  ) ;  
+fit <- fit.se <- log.fit( dat$x , dat$y ,neg.logll=T  ) ;  
 c( fit$b, fit$w )
 coef( glm( dat$y  ~ dat$x , family=binomial ) )
 
+f.prop(  str(dat$x) , fit$b , fit$w)
 
+
+dat$y == Predict( dat$x, fit$b, fit$w)
+
+solve( t( cbind(1,dat$x) ) %*% cbind(1,dat$x) ) %*% 
+	t( cbind(1,dat$x)) %*% dat$y
+
+solve( t( cbind(1,dat$x) ) %*% cbind(1,dat$x) ) %*% 
+	t( cbind(1,dat$x)) %*% dat$y
 
 z <- cbind( fit$W, fit$B , fit$cost)
 
- 
-plot(   fit$cost )
 plot( fit$B, fit$W )
+plot(   fit$cost )
 plot(   fit$W )
 plot( fit$gradnorm )
 
 
-contour(x = seq(-10,  30, length.out = nrow(z)),
-        y = seq(-10,  10, length.out = ncol(z)),  
+contour(x = seq(0,  1, length.out = nrow(z)),
+        y = seq(-.1 ,  .5, length.out = ncol(z)),  
 	z , nlevels = 50)
 
 lines( fit$W , col = "red", type = "o", pch = "16")
 
 ################################# 
 
-fit <- log.fit( dat$x , dat$y ,neg.logll= F  ) ;  
+fit <- fit.se <- log.fit( dat$x , dat$y ,neg.logll= F  ) ;  
 c( fit$b, fit$w )
 coef( glm( dat$y  ~ dat$x , family=gaussian ) )
+solve( t( cbind(1,dat$x) ) %*% cbind(1,dat$x) ) %*% 
+	t( cbind(1,dat$x)) %*% dat$y
 
 
 

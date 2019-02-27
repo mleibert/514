@@ -31,6 +31,7 @@ require(MASS)
 m1=50;mu1=1;s1=.5
 m2=50;mu2=2;s2=.7
 c(xin,y) %<-% generate.1d.dataset(m1,mu1,s1,m2,mu2,s2)
+DF <- list(x=xin,y=y); head(DF$x)
 plot(xin,col=y+3)
 bayes.cut2=function(mu1,s1,mu2,s2){
   ff=function(x){dnorm(x,mu2,s2) - dnorm(x,mu1,s1)}
@@ -55,24 +56,104 @@ implement (complete stubs) the code. The cost functions take the entire x and y 
 
 Typeset the equation for the model output probabilities. The model output function (f.prop) takes the full x dataset, along with model parameters and computes an output probability for every sample. Your code should be vectorized.
 
+```{r}
+SE <- function(x,y,b,w ){
+  yhat=f.prop(x,b,w )
+  m = length(yhat)
+  (-1/m)*(sum(log(yhat[y==1]))+sum(log(1-yhat[y==0])))}
+
+NLL <- function(x,y,b,w ){
+  yhat=f.prop(x,b,w )
+  m = length(yhat)
+  e = matrix(y - yhat,ncol=1)
+  (1/(2*m) )*sum(e^2)
+}
+
+f.prop <- function(x, b, w ){	 sigmoid( x%*%w +b  )  }
+
+```
 
 
 **Step 3 gradient calculations with Numerical Check **
 
 Derive and typeset the gradient equations (w.r.t. model parameters) for both cost functions. After documenting the calculations, implement (complete stubs) the code to return the gradients in a function called b.prop. b.prop takes as input the entire x and y datasets, yhat (predictions returned from f.prop) and a boolean called neg.log, when this is TRUE b.prop should return gradient for NLL otherwise SE. Implement your gradient code in a vectorized solution. Make sure to divide your total gradient by the number of samples.
 
+\ 
+
+```{r}
+b.prop <- function(x,y,yhat,b,w,neg.logll=T){
+	if( neg.logll == T) {
+	  e <- apply(x , 1 , function(R) 	sigmoid( b + t(w) %*% R ) ) - y } 
+  else {
+	 	e <- apply(x , 1 , function(R)  ( b + t(w) %*% R ) ) - y }
+	db <- ( 1/length(y) ) * sum(e)
+	dw <- (1/length(y) ) * colSums( e * x )
+	return( list(db = db, dw = dw ) )}
+```
+
+\ 
+
 To test your gradient functions, implement a function called num.gradient which takes as input the cost function,x,y,b,w,a tolerance (eps) and a boolean to indicate which cost function to use. 
+
+\ 
+
+```{r}
+num.gradient <- function(cost,x,y,b,w,h=1e-8, neg.logll=T )  {
+	db <- ( cost(x, y , b + h , w , neg.logll  = neg.logll   ) - 
+		cost(x, y , b - h , w   , neg.logll = neg.logll   ) ) / (2*h)
+	dw<-w
+	for( i in 1:length(w) ) {
+		wP <- wM <-w; wP[i] <- wP[i]+h; wM[i] <- wM[i]-h
+		dw[i] <- (cost(x, y , b , wP , neg.logll =  neg.logll ) - 
+		cost(x, y, b, wM  , neg.logll =   neg.logll ) ) / (2*h)  }
+	return( list(db = db, dw = dw ) )} 
+
+```
+
+
+\ 
 
 Compare the numerical gradient of your cost functions with the output of your gradient functions to show your gradient function is correct for both 1.d data and 2.d data.
 
+\ 
+
+```{r}
+udat <- generate.1d.dataset(); uw0 <- rnorm( ncol( udat$x ) )
+mdat <- generate.2d.dataset(); mw0 <- rnorm( ncol( mdat$x ) )
+b0 <- rnorm(1)
+
+
+# Univariate
+num.gradient(cost,x = udat$x ,udat$y,b0 ,uw0 , h = .00001,neg.logll=T )
+b.prop( x = udat$x , y = udat$y , yhat= 1 , b=b0 ,w= uw0 ,neg.logll=T)
+
+
+#multivariate
+num.gradient(cost,x = mdat$x ,mdat$y,b0 , mw0  ,h = .00001,neg.logll=T )
+b.prop( x = mdat$x , y = mdat$y , yhat= 1 , b=b0 ,w= mw0 ,neg.logll=T)
+
+```
+
+
+\ 
+
+
 Also implement a function called predict that will take as input b,w, and X and return predictions using the logistic model that you can use to predict outcomes using your model and classify points with predicted probability >0.5 as 1 else 0.
 
+\  
 
+
+```{r}
+Predict <- function(x,b,w){return( as.vector( ifelse( f.prop(x,b,w) > .5 ,  1 , 0 ) )) }
+```
+
+
+ \ 
 
 ```{r}
 c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
 x=t(xin)
-neg.logll=TRUE
+#neg.logll=TRUE
 
 ```
 
@@ -87,7 +168,6 @@ Next code the log.fit stub. This function should include a learning rate paramet
 
 ```{r}
 print.fun('log.fit')
-
 ```
 
 
@@ -100,13 +180,36 @@ Using the data set from step 1 build a model using your log.fit function and opt
 - plot gradient history and performance history of the model
 - plot a contour plot of the b values, w values and cost function using the contour plot in r with 50 levels and draw a line showing the weight history on top of the contour plot in red using lines, type='o' and pch=16, col='red'
 
-```{r}
-c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
-
-x=t(xin)
+```{r , cache=T}
+#c(x,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
+#x=t(xin)
 lr=.25
-neg.logll=TRUE
+#neg.logll=TRUE
 
+fit <- fit.nll <- log.fit(  DF$x , DF$y ,neg.logll=T , eta = lr ) ;  
+c( fit$b, fit$w )
+coef( glm( DF$y  ~ DF$x , family=binomial ) ) # compare Fisher's scoring 
+
+as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )
+1-(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
+
+z <- cbind( fit$W, fit$B , fit$cost)
+```
+```{r}
+  
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot(   fit$cost , xlab = "cost history")
+plot( fit$W ,  xlab = "weight history" )
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot(   fit$gradnorm  , xlab = "Gradient history")
+plot( fit$W, fit$B , xlab = "performance?" )
+
+par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
+z <- cbind( fit$W, fit$B , fit$cost)
+
+contour(x = seq(-1,  10, length.out = nrow(z)),
+        y = seq(-1,  1, length.out = ncol(z)),  z , nlevels = 50)
+lines( fit$W , col = "red", type = "o", pch = "16")
 ```
 
 
@@ -121,21 +224,51 @@ Using the data set from step 1 build a model using your log.fit function and opt
 - plot a contour plot of the b values, w values and cost function using the contour plot in r with 50 levels
 - plot a contour plot of the b values, w values and cost function using the contour plot in r with 50 levels and draw a line showing the weight history on top of the contour plot in red using lines, type='o' and pch=16, col='red'
 
+\ 
 
-
-```{r}
-x=t(xin)
+```{r , cache=T}
+#c(x,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
+#x=t(xin)
 lr=.25
-neg.logll=FALSE
+#neg.logll=TRUE
 
+fit <- fit.se <- log.fit(  DF$x , DF$y ,neg.logll=F , eta = lr ) ;  
+c( fit$b, fit$w )
+coef( glm( DF$y  ~ DF$x , family=gaussian ) ) # compare Fisher's scoring 
 
+as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )
+1-(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
+
+z <- cbind( fit$W, fit$B , fit$cost)
 ```
+```{r}
+  
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot(   fit$cost , xlab = "cost history")
+plot( fit$W , xlab = "weight history" )
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot(   fit$gradnorm  , xlab = "Gradient history")
+plot( fit$W, fit$B , xlab = "performance?" )
+
+par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
+z <- cbind( fit$W, fit$B , fit$cost)
+
+contour(x = seq(-1,  6, length.out = nrow(z)),
+        y = seq(-1,  1, length.out = ncol(z)),  z , nlevels = 50)
+lines( fit$W , col = "red", type = "o", pch = "16")
+```
+
+\ 
+
 **Step 7 Compare performance of NLL and SE **
 
 Plot the performance histories of the 2 cost functions side by side with different colors and legend (red for SE and blue line for NLL)
 
-```{r}
+\ 
 
+```{r}
+plot(   fit.se$cost , xlab = "cost history" , col = "red" , pch =3, ylim=c(0,.8))
+points(   fit.nll$cost , xlab = "cost history" , col = "blue" , pch =4)
 ```
 
 
@@ -150,14 +283,52 @@ Generate a 2-d data set using generate.2d.dataset function and use log.fit (grad
 - plot the decision boundary for x1 and x2 variables in the data
 - compute the accuracy of the model on 10 out of sample data sets generated using the same function and compute the mean accuracy out of sample.  Is it lower than training accuracy?
 
-```{r}
-# 2d, 
-  c(xin,y) %<-% generate.2d.dataset(n1=30,m1=c(1,1),c1=diag(c(1,1)),n2=70,m2=c(3,3),c2=c(1,1))
-  x=t(xin)
+\ 
 
-  
+```{r, cache=T}
+# 2d, 
+  DF2d <- generate.2d.dataset(n1=30,m1=c(1,1),c1=diag(c(1,1)),n2=70,m2=c(3,3),c2=c(1,1))
+  #x=t(xin)
+
+#c(x,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
+#x=t(xin)
+lr=.25
+#neg.logll=TRUE
+
+fit <- fit.nll.2d <- log.fit(  DF2d$x , DF2d$y ,neg.logll=T , eta = lr ) ;  
+c( fit$b, fit$w )
+coef( glm( DF2d$y  ~ DF2d$x , family=binomial ) ) # compare Fisher's scoring 
+
+#accuracy
+as.vector( DF2d$y == Predict( DF2d$x ,  fit$b, fit$w) )
+(sum(as.vector( DF2d$y == Predict( DF2d$x ,  fit$b, fit$w) )*1)/100)
 ```
 
+```{r}
+  
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot(   fit$cost , xlab = "cost history")
+plot( fit$W ,  xlab = "weight history" )
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot(   fit$gradnorm  , xlab = "Gradient history")
+#plot( fit$W, fit$B , xlab = "performance?" )
+
+par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
+```
+
+
+```{r, cache = T}
+AV <- rep(NA, 10)
+for( i in 1:10){ 
+  set.seed(runif(1,1,100000))
+  test.DF <- generate.2d.dataset(n1=30,m1=c(1,1),c1=diag(c(1,1)),n2=70,m2=c(3,3),c2=c(1,1))
+  AV[i] <- (sum(as.vector( test.DF$y == Predict( test.DF$x ,  fit$b, fit$w) )*1)/100)
+}
+mean(AV)
+```
+
+
+\ 
 
 **Step 9 **
 
@@ -167,30 +338,85 @@ Setting the learning rate is one of the most important parameter in models.  In 
 - Plot the cost histories for each learning rate 
 - Create a contour plot and overlay it with a red line for the wgt history for the learning rate of 5.
 
-```{r}
+\ 
+
+```{r, echo = T}
 cost_history=vector(mode='list')
 wgt_history=vector(mode='list')
 perf_history=vector(mode='list')
-hist=vector(mode='list')
-c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
-neg.logll=TRUE
+Hist=vector(mode='list')
+lr=c(.01,.025,2.5,5)
+
+for(j in 1:length(lr)) {
+  fit.lr <- log.fit(  DF$x , DF$y ,neg.logll=T , eta = lr[j] )   
+  cost_history[[j]] <- fit.lr$cost
+  wgt_history[[j]] <- list( b =  fit.lr$B, w = fit.lr$W )
+  #perf_history[[j]] <- 
+  Hist[[j]] <- c(fit.lr$b, fit.lr$w) }
+```
+
+```{r}
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot( cost_history[[1]], xlab = paste0(lr[1]) )
+plot( cost_history[[2]], xlab = paste0(lr[2]) )
+plot( cost_history[[3]], xlab = paste0(lr[3]) )
+plot( cost_history[[4]], xlab = paste0(lr[4]) )
+
+coef( glm( DF$y  ~ DF$x , family=binomial ) ) # compare Fisher's scoring 
+Hist
+
+z <- cbind( wgt_history[[4]][[1]] , wgt_history[[4]][[2]] , cost_history[[4]])
+par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
+contour(x = seq(-1,  3*18, length.out = nrow(z)),
+        y = seq(-0,  6, length.out = ncol(z)),  z , nlevels = 50)
+lines( wgt_history[[4]]$w , col = "red", type = "o", pch = "16")
 
 ```
+
+
+\ 
+
 **Step 10 **
 
 Repeat the learning rate exploration using SE cost function using the same experimental setup from step 9 except use a learning rate of 25 instead of 5. Produce the 2 plots for cost histories by learning rate and contour plot with wgt history red line for the learning rate of 25.
 
 
-```{r}
+
+
+\ 
+
+```{r, echo = T}
 cost_history=vector(mode='list')
 wgt_history=vector(mode='list')
 perf_history=vector(mode='list')
-hist=vector(mode='list')
-c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
-neg.logll=FALSE
-counter=1
+Hist=vector(mode='list')
 lr=c(.01,.025,.25,.5,2.5,5,25)
 
+for(j in 1:length(lr)) {
+  fit.lr.se <- log.fit(  DF$x , DF$y ,neg.logll=F , eta = lr[j] )   
+  cost_history[[j]] <- fit.lr$cost
+  wgt_history[[j]] <- list( b =  fit.lr$B, w = fit.lr$W )
+  #perf_history[[j]] <- 
+  Hist[[j]] <- c(fit.lr$b, fit.lr$w) }
+```
 
+```{r}
+par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+plot( cost_history[[1]], xlab = paste0(lr[1]) )
+plot( cost_history[[2]], xlab = paste0(lr[2]) )
+plot( cost_history[[3]], xlab = paste0(lr[3]) )
+plot( cost_history[[4]], xlab = paste0(lr[4]) )
+
+coef( glm( DF$y  ~ DF$x , family=gaussian ) ) # compare Fisher's scoring 
+Hist
+
+z <- cbind( wgt_history[[4]][[1]] , wgt_history[[4]][[2]] , cost_history[[4]])
+par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
+contour(x = seq(-1,  3*18, length.out = nrow(z)),
+        y = seq(-0,  6, length.out = ncol(z)),  z , nlevels = 50)
+lines( wgt_history[[4]]$w , col = "red", type = "o", pch = "16")
 
 ```
+
+
+\ 

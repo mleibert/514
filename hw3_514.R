@@ -59,7 +59,7 @@ generate.2d.dataset=function(n1=30,m1=c(1,1),c1=diag(c(1,1)),n2=70,m2=c(3,3),c2=
 
 # this function is not used by logistic code - it is used to look as cost as a function of b,w
 cost=function(x,y,b,w,neg.logll=TRUE){
-  yhat=f.prop(x,b,w,neg.logll=neg.logll)
+  yhat=f.prop(x,b,w )
   m = length(yhat)
   if(neg.logll){
     #cost=(-1/m)*sum(y*log(yhat)+(1-y)*log(1-yhat))
@@ -91,6 +91,24 @@ num.gradient=function(cost,x,y,b,w,eps=1e-8,neg.logll=TRUE){
 }
 
 # should return cost, b,w, db,dw and history of these values for each iteration
-log.fit = function(x,y,neg.logll,eta,max.its,tol,b.init=0,w.init=0){
-  
-}
+
+log.fit <- function( x ,y , neg.logll = T , eta=.25, Nsim = 2000,tol, b0 = 0 , w0 = 0 ){
+ 
+	if( length( w0 != dim(x)[2] ) ) { w0 <- rnorm( dim(x)[2] ) }
+	err <- b <- Costs <- c(b0,rep(NA,Nsim ) )
+	w <- matrix( NA , Nsim + 1, dim(x)[2] ) ; w[1,] <- w0
+	for( i in 1:Nsim  ){
+		#err[i] <- sigmoid( b[i] + x %*% w[i,] ) - y
+		Costs[i] <- cost(x,y, b[i] ,w[i ,], neg.logll = neg.logll )
+		BP <- b.prop( x,y, 1 ,b[i],w[ i, ], neg.logll = neg.logll )
+		b[i+1] <- b[i] - eta *  BP$db
+		w[i+1,] <- w[i ,] - eta *  BP$dw
+	 #if( abs( b[i] - b[i+1] ) < .00001 & ( norm( w[i+1] , "2" ) - 
+	 #	norm( w[i ] , "2" ) ) <  .00001 ){ break }
+	}
+	return( list( b = b[i], w = w[i,], W = w[1:i,], B = b[1:i],
+		cost = Costs[!is.na(Costs)], gradnorm = apply( 	cbind(b[1:i], 
+		w[1:i,]) , 1 , function(N) norm(N, "2")  ) ) )}
+
+
+
