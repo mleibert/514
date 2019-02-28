@@ -3,6 +3,12 @@ title: "hw3_514"
 output:
   pdf_document: default
   html_document: default
+header-includes:
+   - \usepackage{cancel}
+   - \usepackage{multirow,setspace}
+   - \usepackage{bm}
+   - \usepackage{amsmath}
+   - \usepackage{mathtools}
 ---
 
 ```{r setup, include=FALSE}
@@ -56,23 +62,45 @@ implement (complete stubs) the code. The cost functions take the entire x and y 
 
 Typeset the equation for the model output probabilities. The model output function (f.prop) takes the full x dataset, along with model parameters and computes an output probability for every sample. Your code should be vectorized.
 
+
+
+\ 
+
+Squared Error
+
+\begin{align*}
+C(b,{\bf w}) &= \cfrac{1}{2m} \ ||h({\bf x} - T)||^2 \\
+  &= \cfrac{1}{2m} \sum_{i=1}^m \left( h({\bf x}^{(i)}-t^{(i)}) \right)^2
+\end{align*}
+
+Negative Log Likelihood
+
+\begin{align*}
+C(b,{\bf w}) &= - \cfrac{1}{m} \sum_{i=1}^m \left( t^{(i)}  \log\left( h({\bf x}^{(i)} \right) + 
+ \left( 1- t^{(i)} \right)  \log\left( 1-h({\bf x}^{(i)} \right) \right)
+\end{align*}
+
+\ 
+
 ```{r}
-SE <- function(x,y,b,w ){
+
+f.prop <- function(X, b, w ){	 sigmoid( b + X %*% w )  }
+
+NLL <- function(x,y,b,w ){
   yhat=f.prop(x,b,w )
   m = length(yhat)
   (-1/m)*(sum(log(yhat[y==1]))+sum(log(1-yhat[y==0])))}
 
-NLL <- function(x,y,b,w ){
+SE <- function(x,y,b,w ){
   yhat=f.prop(x,b,w )
   m = length(yhat)
   e = matrix(y - yhat,ncol=1)
   (1/(2*m) )*sum(e^2)
 }
-
-f.prop <- function(x, b, w ){	 sigmoid( x%*%w +b  )  }
-
 ```
 
+
+\ 
 
 **Step 3 gradient calculations with Numerical Check **
 
@@ -80,14 +108,31 @@ Derive and typeset the gradient equations (w.r.t. model parameters) for both cos
 
 \ 
 
+\begin{align*} 
+\cfrac{\partial}{\partial \theta } \ \left[ \cfrac{1}{2m} \sum_{i=1}^m \left( h({\bf x}^{(i)}-t^{(i)}) \right)^2 \right] &=
+ \cfrac{1}{ m} \sum_{i=1}^m \left( h({\bf x}^{(i)}-t^{(i)}) \right)  \cfrac{\partial h^{(i)}}{\partial \theta } \\[1.5 em]
+ \cfrac{\partial h}{\partial b }  &=1 \\[.5 em]
+  \cfrac{\partial h}{\partial {\bf w} }  &=   {\bf x} 
+\end{align*}
+
+ \ 
+
+\begin{align*}
+    \cfrac{\partial C^{i}}{\partial \theta } &= -t^{(i)} (1-h) \cfrac{\partial z}{\partial \theta } + \left( 1-t^{(i)} \right)h \cfrac{\partial z}{\partial \theta } \\[.5 em]
+     &=\left( h-t^{(i)} \right)\cfrac{\partial z}{\partial \theta } \\[.5 em] 
+     &=\left( \sigma\left(b+{\bf w}^t {\bf x}^{(i)} - t^{(i)}\right)\right) \cfrac{\partial z}{\partial \theta }
+\end{align*}
+
+
+
 ```{r}
-b.prop <- function(x,y,yhat,b,w,neg.logll=T){
+b.prop <- function(x,y,yhat, neg.logll=T){
 	if( neg.logll == T) {
-	  e <- apply(x , 1 , function(R) 	sigmoid( b + t(w) %*% R ) ) - y } 
-  else {
-	 	e <- apply(x , 1 , function(R)  ( b + t(w) %*% R ) ) - y }
-	db <- ( 1/length(y) ) * sum(e)
-	dw <- (1/length(y) ) * colSums( e * x )
+		db <- ( 1/length(y) ) * sum(yhat-y)
+		dw <- (1/length(y) ) * colSums( t(yhat-y) %*% x ) }
+	else {	 	
+		db <- ( 1/length(y) ) * sum((yhat - y) * yhat * (matrix(1,length(y),1)-yhat))
+		dw <- (1/length(y) ) * (t((yhat - y) * yhat * (matrix(1,length(y),1)-yhat)) %*% x) }
 	return( list(db = db, dw = dw ) )}
 ```
 
@@ -121,16 +166,23 @@ Compare the numerical gradient of your cost functions with the output of your gr
 udat <- generate.1d.dataset(); uw0 <- rnorm( ncol( udat$x ) )
 mdat <- generate.2d.dataset(); mw0 <- rnorm( ncol( mdat$x ) )
 b0 <- rnorm(1)
+uyhat <- f.prop(  udat$x ,b0 , uw0) 
 
-
-# Univariate
+ # Univariate
 num.gradient(cost,x = udat$x ,udat$y,b0 ,uw0 , h = .00001,neg.logll=T )
-b.prop( x = udat$x , y = udat$y , yhat= 1 , b=b0 ,w= uw0 ,neg.logll=T)
+b.prop( x = udat$x , y = udat$y , uyhat ,neg.logll=T)
 
+num.gradient(cost,x = udat$x ,udat$y,b0 ,uw0 , h = .00001,neg.logll=F )
+b.prop( x = udat$x , y = udat$y , uyhat ,neg.logll=F)
+
+myhat <- f.prop(  mdat$x ,b0 , mw0) 
 
 #multivariate
-num.gradient(cost,x = mdat$x ,mdat$y,b0 , mw0  ,h = .00001,neg.logll=T )
-b.prop( x = mdat$x , y = mdat$y , yhat= 1 , b=b0 ,w= mw0 ,neg.logll=T)
+num.gradient(cost,x = mdat$x ,mdat$y,b0 ,mw0 , h = .00001,neg.logll=T )
+b.prop( x = mdat$x , y = mdat$y , myhat ,neg.logll=T)
+
+num.gradient(cost,x = mdat$x ,mdat$y,b0 ,mw0 , h = .00001,neg.logll=F )
+b.prop( x = mdat$x , y = mdat$y , myhat ,neg.logll=F)
 
 ```
 
@@ -149,13 +201,6 @@ Predict <- function(x,b,w){return( as.vector( ifelse( f.prop(x,b,w) > .5 ,  1 , 
 
 
  \ 
-
-```{r}
-c(xin,y) %<-% generate.1d.dataset(50,1,.5,50,2,.7)
-x=t(xin)
-#neg.logll=TRUE
-
-```
 
 
 **Step 4 Optimizer/Gradient Descent**
@@ -192,24 +237,27 @@ coef( glm( DF$y  ~ DF$x , family=binomial ) ) # compare Fisher's scoring
 
 as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )
 1-(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
-
-z <- cbind( fit$W, fit$B , fit$cost)
+plot(fit$perf)
 ```
 ```{r}
-  
+
+
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot(   fit$cost , xlab = "cost history")
-plot( fit$W ,  xlab = "weight history" )
+plot( fit$W ,fit$B,  xlab = "weight history" )
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
-plot(   fit$gradnorm  , xlab = "Gradient history")
-plot( fit$W, fit$B , xlab = "performance?" )
+plot(   fit$gradnorm  , xlab = "Gradient history");  
+ 
 
-par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
-z <- cbind( fit$W, fit$B , fit$cost)
+LO <- 50
+sw <- seq(range(fit$W)[1]-1,  range(fit$W)[2]+1, length.out = LO )
+sb <- seq(range(fit$B)[1]-1,  range(fit$B)[2]+1, length.out = LO )
+z <- matrix(0 , LO, LO)
+for( i in 1:LO){
+for( j in 1:LO){ z[i,j] <- NLL( DF$x,DF$y, b = sb[i], w = sw[j] ) }}
+contour(x = sw,   y =sb,  z , nlevels = 50)
+lines( fit$W, fit$B , col = "red", type = "o", pch = "16")
 
-contour(x = seq(-1,  10, length.out = nrow(z)),
-        y = seq(-1,  1, length.out = ncol(z)),  z , nlevels = 50)
-lines( fit$W , col = "red", type = "o", pch = "16")
 ```
 
 
@@ -234,8 +282,7 @@ lr=.25
 
 fit <- fit.se <- log.fit(  DF$x , DF$y ,neg.logll=F , eta = lr ) ;  
 c( fit$b, fit$w )
-coef( glm( DF$y  ~ DF$x , family=gaussian ) ) # compare Fisher's scoring 
-
+ 
 as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )
 1-(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
 
@@ -245,17 +292,20 @@ z <- cbind( fit$W, fit$B , fit$cost)
   
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot(   fit$cost , xlab = "cost history")
-plot( fit$W , xlab = "weight history" )
+plot( fit$W , fit$B, xlab = "weight history" )
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot(   fit$gradnorm  , xlab = "Gradient history")
-plot( fit$W, fit$B , xlab = "performance?" )
+plot( fit$perf , xlab = "performance" )
 
-par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
-z <- cbind( fit$W, fit$B , fit$cost)
-
-contour(x = seq(-1,  6, length.out = nrow(z)),
-        y = seq(-1,  1, length.out = ncol(z)),  z , nlevels = 50)
-lines( fit$W , col = "red", type = "o", pch = "16")
+par(mfrow=c(1,1) , mai=c(.85 , .5, .25 , .5 ) )
+LO <- 50
+sw <- seq(range(fit$W)[1]-1,  range(fit$W)[2]+1, length.out = LO )
+sb <- seq(range(fit$B)[1]-1,  range(fit$B)[2]+1, length.out = LO )
+z <- matrix(0 , LO, LO)
+for( i in 1:LO){
+for( j in 1:LO){ z[i,j] <- NLL( DF$x,DF$y, b = sb[i], w = sw[j] ) }}
+contour(x = sw,   y =sb,  z , nlevels = 50)
+lines( fit$W, fit$B , col = "red", type = "o", pch = "16")
 ```
 
 \ 
@@ -269,6 +319,8 @@ Plot the performance histories of the 2 cost functions side by side with differe
 ```{r}
 plot(   fit.se$cost , xlab = "cost history" , col = "red" , pch =3, ylim=c(0,.8))
 points(   fit.nll$cost , xlab = "cost history" , col = "blue" , pch =4)
+legend("topright", legend=c("SE", "NLL"),
+       col=c("red", "blue"), lty=1:1, cex=0.8)
 ```
 
 
@@ -299,6 +351,9 @@ fit <- fit.nll.2d <- log.fit(  DF2d$x , DF2d$y ,neg.logll=T , eta = lr ) ;
 c( fit$b, fit$w )
 coef( glm( DF2d$y  ~ DF2d$x , family=binomial ) ) # compare Fisher's scoring 
 
+plot(DF2d$x[,1],DF2d$x[,2])
+abline(fit$b/(-fit$w[2]) ,fit$w[1]/(-fit$w[2]))
+
 #accuracy
 as.vector( DF2d$y == Predict( DF2d$x ,  fit$b, fit$w) )
 (sum(as.vector( DF2d$y == Predict( DF2d$x ,  fit$b, fit$w) )*1)/100)
@@ -311,7 +366,7 @@ plot(   fit$cost , xlab = "cost history")
 plot( fit$W ,  xlab = "weight history" )
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot(   fit$gradnorm  , xlab = "Gradient history")
-#plot( fit$W, fit$B , xlab = "performance?" )
+plot( fit$perf, xlab = "performance" )
 
 par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
 ```
@@ -324,7 +379,7 @@ for( i in 1:10){
   test.DF <- generate.2d.dataset(n1=30,m1=c(1,1),c1=diag(c(1,1)),n2=70,m2=c(3,3),c2=c(1,1))
   AV[i] <- (sum(as.vector( test.DF$y == Predict( test.DF$x ,  fit$b, fit$w) )*1)/100)
 }
-mean(AV)
+mean(AV) #lower than training
 ```
 
 
@@ -351,7 +406,7 @@ for(j in 1:length(lr)) {
   fit.lr <- log.fit(  DF$x , DF$y ,neg.logll=T , eta = lr[j] )   
   cost_history[[j]] <- fit.lr$cost
   wgt_history[[j]] <- list( b =  fit.lr$B, w = fit.lr$W )
-  #perf_history[[j]] <- 
+  perf_history[[j]] <- fit.lr$perf
   Hist[[j]] <- c(fit.lr$b, fit.lr$w) }
 ```
 
@@ -365,12 +420,14 @@ plot( cost_history[[4]], xlab = paste0(lr[4]) )
 coef( glm( DF$y  ~ DF$x , family=binomial ) ) # compare Fisher's scoring 
 Hist
 
-z <- cbind( wgt_history[[4]][[1]] , wgt_history[[4]][[2]] , cost_history[[4]])
-par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
-contour(x = seq(-1,  3*18, length.out = nrow(z)),
-        y = seq(-0,  6, length.out = ncol(z)),  z , nlevels = 50)
-lines( wgt_history[[4]]$w , col = "red", type = "o", pch = "16")
-
+LO <- 50
+sw <- seq(range(fit.lr$W)[1]-1,  range(fit.lr$W)[2]+1, length.out = LO )
+sb <- seq(range(fit.lr$B)[1]-1,  range(fit.lr$B)[2]+1, length.out = LO )
+z <- matrix(0 , LO, LO)
+for( i in 1:LO){
+for( j in 1:LO){ z[i,j] <- NLL( DF$x,DF$y, b = sb[i], w = sw[j] ) }}
+contour(x = sw,   y =sb,  z , nlevels = 50)
+lines( fit.lr$W, fit.lr$B , col = "red", type = "o", pch = "16")
 ```
 
 
@@ -385,36 +442,38 @@ Repeat the learning rate exploration using SE cost function using the same exper
 
 \ 
 
-```{r, echo = T}
+```{r, echo = T, }
 cost_history=vector(mode='list')
 wgt_history=vector(mode='list')
 perf_history=vector(mode='list')
 Hist=vector(mode='list')
-lr=c(.01,.025,.25,.5,2.5,5,25)
+lr=c(.01,.025,2.5,25)
 
 for(j in 1:length(lr)) {
   fit.lr.se <- log.fit(  DF$x , DF$y ,neg.logll=F , eta = lr[j] )   
   cost_history[[j]] <- fit.lr$cost
   wgt_history[[j]] <- list( b =  fit.lr$B, w = fit.lr$W )
-  #perf_history[[j]] <- 
+  perf_history[[j]] <- fit.lr$perf
   Hist[[j]] <- c(fit.lr$b, fit.lr$w) }
 ```
 
-```{r}
+```{r }
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot( cost_history[[1]], xlab = paste0(lr[1]) )
 plot( cost_history[[2]], xlab = paste0(lr[2]) )
 plot( cost_history[[3]], xlab = paste0(lr[3]) )
 plot( cost_history[[4]], xlab = paste0(lr[4]) )
 
-coef( glm( DF$y  ~ DF$x , family=gaussian ) ) # compare Fisher's scoring 
-Hist
+ par(mfrow=c(1,1) , mai=c(.85 , .5, .25 , .5 ) )
 
-z <- cbind( wgt_history[[4]][[1]] , wgt_history[[4]][[2]] , cost_history[[4]])
-par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
-contour(x = seq(-1,  3*18, length.out = nrow(z)),
-        y = seq(-0,  6, length.out = ncol(z)),  z , nlevels = 50)
-lines( wgt_history[[4]]$w , col = "red", type = "o", pch = "16")
+LO <- 50
+sw <- seq(range(fit.lr$W)[1]-1,  range(fit.lr$W)[2]+1, length.out = LO )
+sb <- seq(range(fit.lr$B)[1]-1,  range(fit.lr$B)[2]+1, length.out = LO )
+z <- matrix(0 , LO, LO)
+for( i in 1:LO){
+for( j in 1:LO){ z[i,j] <- NLL( DF$x,DF$y, b = sb[i], w = sw[j] ) }}
+contour(x = sw,   y =sb,  z , nlevels = 50)
+lines( fit.lr.se$W, fit.lr.se$B , col = "red", type = "o", pch = "16")
 
 ```
 
