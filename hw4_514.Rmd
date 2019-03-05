@@ -48,8 +48,10 @@ Implement a function called one.hot that takes a vector of integers and returns 
 
 ```{r}
 
-Y=one.hot(t(y))
-  
+one.hot <- function( Y ){
+	onehots <- diag( length( unique( as.vector( Y ) ) ) )
+	rownames(onehots) <-  as.character( unique( as.vector( Y ) ) ) 
+	return(onehots ) }
 ```
 
 
