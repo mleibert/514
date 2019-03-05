@@ -1,0 +1,212 @@
+---
+title: "hw4_514"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+**Homework 4 Problem Statement**
+
+Implement gradient descent for softmax regression using the cross-entropy (CE) cost function.  Train models using synthetic data as well as the MNIST handwritten digit data.  
+
+You will complete the following functions as part of this homework and some additional helper functions: 
+
+- one.hot : Takes a Y vector of integers and converts it to one hot encoded matrix. Our implementation stores one-hot vectors as columns
+- bk.prop: Computes the gradient of the cost function wrt to adjustable parameters b and w. Your solution should be "vectorized" and use vector/matrix operations to compute the gradient for the entire dataset on each call. 
+- fwd.prop: Computes model outputs (softmax). fwd.prop should be vectorized
+- softmax.fit: Implements a simple gradient descent loop given a fixed learning rate and the number of iterations
+- cost: Compute Cross-Entropy cost for entire dataset.
+
+
+**Step 1 Generate data **
+
+Use the code chunk below to to create a dataset.  This chunk creates a data set that is a mixture of 3 classes of 2d normals with different means and variances. Use the plot provided to visualize the data.
+
+```{r}
+source('hw4_514.R')
+library(MASS)
+library(zeallot)
+n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
+n2=40; mu2=c(1.5,1.5);cov2=diag(.1,2)
+n3=30; mu3=c(1.5,0);  cov3=diag(.1,2)
+mean.cov.list=list()
+mean.cov.list[[1]]=list(n=50, mu=c(.5,.5),  cov=diag(.2,2))
+mean.cov.list[[2]]=list(n=40, mu=c(1.5,1.5),cov=diag(.1,2))
+mean.cov.list[[3]]=list(n=30, mu=c(1.5,0),  cov=diag(.1,2))
+
+#c(X,y) %<-% generate.gaussian.data.class3(n1,mu1,cov1,n2,mu2,cov2,n3,mu3,cov3)
+c(X,y) %<-% gen.gaussian.data.2d(mean.cov.list)
+plot(X[1,],X[2,],pch=1,col=y+1,lwd=2,cex=1)
+
+```
+
+
+**Step 2 Implement one hot encoding function **
+
+Implement a function called one.hot that takes a vector of integers and returns the corresponding one-hot encode matrix
+
+```{r}
+
+Y=one.hot(t(y))
+  
+```
+
+
+**Step 3 Cost Function and Model Output Function**
+
+- Use latex to document your cross-entropy cost function
+
+- Implement (complete function) the cost function code. The cost function takes as input the entire X and Y datasets and b,w parameters and should be vectorized. Make sure to divide your total cost by the number of samples.  
+
+- Use latex to document the model output probabilites (softmax)
+
+- Implement the model output function, called fwd.prop.  fwd.prop takes the full X dataset, along with model parameters and computes output probabilities for every sample. Your code should be vectorized.
+
+
+
+
+```{r}
+print.fun('fwd.prop');
+print.fun('cost');
+
+```
+
+**Step 4 Gradient Calculations with Numerical Check **
+
+Use latex to document the cross-entropy cost calculation. Implement (complete function) the code to return the gradients in a function called bk.prop. Your gradient code should be vectorized. Make sure to divide your total gradient by the number of samples.
+
+Check your gradient functions by comparing with a numerical gradient calculation.
+
+
+```{r}
+print.fun('num.gradient');
+print.fun('bk.prop');
+
+
+
+```
+
+
+**Step 4 Optimizer/Gradient Descent**
+
+Next code the softmax.fit function. Arguments include a learning rate parameter and the number of iterations. This function should return a complete list of generated data:
+- history of (b,w)
+- history of cost
+- history of gradient norm
+- history of timestamps (Sys.time()) 
+- Use print fun to display code in softmax.fit
+
+Implement a function called predict that will take as input b,w, and X and return predictions. It should return the class value with the highest predicted probability as the prediction.
+
+
+```{r}
+print.fun('softmax.fit')
+
+```
+
+
+**Step 5 Use softmax regression on synthetic data **
+
+- Use the softmax.fit to train a model on synthetic data from step 1. Use a learning rate of .2 and 2000 iterations.
+- Use the predict function to test model accuracy on out-of-sample data
+- Plot the decision boundary of the model. Do this by creating a grid of points covering the synthetic and coloring the grid points using the model predicted class. Overlay the data points, colored by their predict values, on top of the grid. 
+
+```{r}
+
+```
+
+
+
+**Step 6 change synthetic data to consider a 5 class problem**
+
+- Re-do step 5 using a synthetic data set with 5 classes
+
+```{r}
+n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
+n2=40; mu2=c(1.5,2.); cov2=diag(.1,2)
+n3=30; mu3=c(1.5,-1); cov3=diag(.1,2)
+n4=30; mu4=c(2,0);    cov4=diag(.1,2)
+n5=30; mu5=c(2,1);    cov5=diag(.1,2)
+
+mean.cov.list=list()
+mean.cov.list[[1]]=list(n=n1, mu=mu1,  cov=cov1)
+mean.cov.list[[2]]=list(n=n2, mu=mu2,  cov=cov2)
+mean.cov.list[[3]]=list(n=n3, mu=mu3,  cov=cov3)
+mean.cov.list[[4]]=list(n=n4, mu=mu4,  cov=cov4)
+mean.cov.list[[5]]=list(n=n5, mu=mu5,  cov=cov5)
+
+#c(X,y) %<-% generate.gaussian.data.class3(n1,mu1,cov1,n2,mu2,cov2,n3,mu3,cov3)
+c(X,y) %<-% gen.gaussian.data.2d(mean.cov.list)
+Y=one.hot(t(y))
+
+
+```
+
+**Step 7 Download and load MNIST data**
+
+Using the following URLs download the MNIST data (manually, or you could use the download code included in the hw4_514.R file).  The dataset contains input X data containing image of numbers between 0 and 9 and actual y label of the number.  Image pixels range between 0 and 255 and have to be scaled by dividing by matrix by 255 before you use the data.
+
+- http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+- http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+- http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+- http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+
+LeCun's MNIST data has 60k train samples and 10k test samples
+
+
+```{r}
+download_mnist()
+```
+
+**Step 8 Train a model to predict MNIST data**
+
+Use your softmax.fit to train a model on MNIST training data.  Use the load_image_file and load_label_file provided in the hw4_514.R file to read the binary ubyte files
+
+- build a model using softmax.fit using a random sample of 1000 train images using a learning rate of .1 and 100 iterations
+- test model accuracy both in sample and out of sample. Use the provided test data for out-of-sample images and tags
+- plot the cost history of the solution
+- plot weight history
+- plot gradient history
+- plot performance history of the model
+
+
+```{r}
+
+```
+
+
+
+**Step 9 Train model on full data **
+
+Re-run the model now using the full 60k train data and check performance using the MNIST test data
+
+
+
+```{r full_mnist_model, cache=TRUE}
+
+
+```
+**Step 10 Examine Errors **
+
+Score the train data using the model from step 10. For each digit, find the image that scored the highest and the lowest. For example, for all of the '7' images, find the one that scored the highest to be a '7' and the one that scored the lowest to be a '7'. Plot the best/worst side by side. Annotate your images with their prediction. For us, the 'worst' 7 was predicted to be a 2. Use the provided function show_digit2 to display images.
+
+```{r}
+
+
+```
+
+
+**Step 11 Explore learning rate parameters to try to get better performance **
+
+Various online reference achieve 92% accuracy on MNIST when using a learning rate of .5 and 1000 iterations.  Explore the impact of learning rate and iterations on your MNIST model.  
+
+Setting the learning rate is one of the most important parameter in models.  Run an experiment to evaluate a range of learning rates and plot the resulting cost histories.
+
+- What combination of leaning rate and iterations gave you the best out-of-sample performance?
+
+
+```{r}
+
+```
+
