@@ -22,18 +22,18 @@ one.hot <- function( Y ){
 one.hot(y)
 
 dim(X) 
-k = 4
+k = length( unique( as.vector( y ) ) )
 m = dim(X)[2]
 n = dim(X)[1]
 W  <- matrix( rnorm( k*m  ), k , n  )
-W
+W; dim(W)
 b <- matrix( rnorm(k) , ncol = 1)
  
 Z <- b %*% matrix( rep(1,m) , nrow = 1) + W%*%X
+dim(Z)
 
 H <-   ( exp(Z) %*% diag( 1/colSums( exp(Z) )   )   )
-
-y
+ 
  
 one.hot <- function(Y){ 
 	Y <- as.factor(Y)
@@ -42,5 +42,6 @@ one.hot <- function(Y){
 	return(OH) }
 	
 Tt <- one.hot(y)
+dim(H);dim(Tt)
 
-
+-Tt * log( H)
