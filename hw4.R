@@ -45,3 +45,5 @@ Tt <- one.hot(y)
 dim(H);dim(Tt)
 
 -Tt * log( H)
+
+ 
