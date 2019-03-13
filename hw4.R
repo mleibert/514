@@ -2,6 +2,7 @@ setwd("G:\\math\\514")
 source('hw4_514.R')
 library(MASS)
 library(zeallot)
+require(beepr)
 n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
 n2=40; mu2=c(1.5,1.5);cov2=diag(.1,2)
 n3=30; mu3=c(1.5,0);  cov3=diag(.1,2)
@@ -17,9 +18,9 @@ c(x,y) %<-% gen.gaussian.data.2d(mean.cov.list)
 #plot(X[1,],X[2,],pch=1,col=y+1,lwd=2,cex=1)
  c(x1,y1) %<-% gen.gaussian.data.2d(mean.cov.list)
 
-#dim(x); k = length( unique( as.vector( y ) ) ); m = dim(x)[2]
-#n = dim(x)[1]; w0  <- matrix( rnorm( k*n  ) * .1 , k , n  )
-#w0  ; dim(w0  ); b0 <- matrix( rnorm(k) , ncol = 1)
+# dim(x); k = length( unique( as.vector( y ) ) ); m = dim(x)[2]
+# n = dim(x)[1]; w0  <- matrix( rnorm( k*n  ) * .1 , k , n  )
+# w0  ; dim(w0  ); b0 <- matrix( rnorm(k) , ncol = 1)
  
   
 one.hot <- function(Y){ 
@@ -29,9 +30,9 @@ one.hot <- function(Y){
 	return(OH) }
 	
 fwd.prop <- function( X, b ,w ){
-	Z <- ( b %*% matrix( rep(1, dim(X)[2] ) , nrow = 1) + w %*% X) 
-	H <- exp( sweep(Z,2,apply(Z,2,max) )) %*% (1/colSums( exp( 
-	sweep(Z,2,apply(Z,2,max)  ) ) ) * Diagonal(dim(Z)[2]) 	)   
+	Z <- ( b %*% matrix( rep(1, dim(X)[2] ) , nrow = 1) + w %*% X)
+	Z <-  exp( sweep(Z,2,apply(Z,2,max) ))
+	H <- Z %*% (1/colSums( Z ) * Diagonal(dim(Z)[2]) 	)   
 	return( as.matrix(H))  }
 
 
@@ -66,7 +67,9 @@ num.gradient <- function(cost,X,Y,b,w,g=1e-8 )  {
 return( list(db = db , dw =  dw) )} 
 
  
- 
+
+bk.prop( x, y , fwd.prop( x , b0 , w0 ) )
+num.gradient( cost , x , y, b0 , w0)
 
 ###########################################################################
 
@@ -77,49 +80,64 @@ softmax.fit <- function(X,Y,lr=.01,max.its=100 ){
 	b<- rnorm( K ) * .1
 	W <- matrix( rnorm( K * N ) *.1 , K , N )
 	blist <- wlist <- Costs <- gradlist<- list()
+ 	Class  <-  sort(unique(as.vector(Y)))
 
 	st <- system.time(
 	for( i in 1:max.its ) {
 		FP <- fwd.prop(X , b, W )
+		Per <- Class[apply( FP , 2 , function( M ) which( M == max(M) ))]
 		Costs[[i]] <- (-1/M) * sum( colSums( one.hot(Y) * log(FP)) )
 		BP <- bk.prop(X,Y,FP)
 		b <- blist[[i]] <- b - lr * BP$db
 		W <- wlist[[i]] <- W - lr * BP$dw
 		gradlist[[i]] <-  norm( cbind(b,W) , "2")
 	} )
-	return( list ( b = b , W = W , st = st) )	
+	return( list ( b = b , W = W , st = st, wlist = wlist, peformance = Per,
+		blist = blist, costs = Costs, gradlist = gradlist ) )	
 }
 
 norm( matrix( rnorm(9) , 3 ,3 ), "2")
 
 Predict <- function(X,Y,b,w){  
- 	Classes  <-  sort(unique(Y))
+ 	Classes  <-  sort(unique(as.vector(Y)))
  	Classes[apply( fwd.prop( X , b , w ), 2 , function( M ) 
-		which( M == max(M) ) ) ] 	}
+		which( M == max(M) ) ) ] 
+	}
 
  
 ###########
 
-fit <- softmax.fit( x , y , lr = .2 ,max.its=2000  )
+fit <- softmax.fit( x , y , lr = .2 ,max.its = 2000  ); beep("coin")
 fit
 
 newdat <- gen.gaussian.data.2d(mean.cov.list)
+ 
+fwd.prop(newdat[[1]], fit$b , fit$W)
+
+Predict(x,y, fit$b, fit$W) 
+
+Predict(newdat[[1]], newdat[[2]], fit$b, fit$W) 
 
 sum(( Predict(newdat[[1]], newdat[[2]], fit$b, fit$W) == newdat[[2]] )*1 ) / 
 	length(newdat[[2]])
 
-plot(t(newdat[[1]]))
+ 
 
-px <-  seq( -1 , 2.5 , .01 )
-Predict( as.matrix( c( px[1], py[1] ) ,nrow = 1 ) , y ,   fit$b, fit$W )
+px <-  seq(  min( newdat[[1]] )-.1 , max( newdat[[1]] )+.1  , .1 )
 Colors <- c("red", "blue", "green")
 
+plot(t(newdat[[1]]), pch = 16 , col = "white")
 for( i in 1:length(px) ){
 for( j in 1:length(px) ){
 	
-	points(  px[i], px[j] , col = Colors[
+	points(  px[i], px[j] , pch = 3, col = Colors[
 	Predict(  ( as.matrix( c( px[i], px[j] )  ) ), y , fit$b , fit$W)] )
 }}
+
+plotdat <- cbind( t(newdat[[1]]),   as.vector( newdat[[2]] ) )
+
+apply( plotdat, 1 , function(A) points( A[1], A[2], col = Colors[A[3]],
+pch = 16 ) )
 
 ######################################################################
 ######################################################################
@@ -177,10 +195,19 @@ x <- t(x);dim(x)
 x[1:10,1:10]
 y <-  unname( mtrains[,1] )
 
-fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 )
+fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 );beep("coin")
+
 
 sum(( Predict(nx,  ny, fit$b, fit$W) == ny )*1 ) / length(ny)
 
+
+A <- fwd.prop( x , fit$b*rnorm(10) , fit$W )
+
+A9 <- A[,which( y == 9 )]  
+A9[ which( A9 > 0 & A9 < 1) ]
+A9[ 10,  ]
+
+show_digit2
 ##########################
 
 x <- unname( mtrain[,-1] )
@@ -188,8 +215,15 @@ dim(x)
 x <- t(x)
 y <-  as.matrix( unname(  mtrain[,1] ))
 
-fit <- softmax.fit( x , y, lr = .5 ,max.its= 1000 ); beep("coin") 
-fit
+fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 ); beep("coin") 
+
 
 sum(( Predict(nx,  ny, fit$b, fit$W) == ny )*1 ) / length(ny)
+
+Predict(x,  y, fit$b, fit$W) 
+
+Perf <-  t( fwd.prop( x,    rnorm(10) , matrix(rnorm(10*784,10,784) )  )
+Perf <-  cbind(Perf, y)
+Perf <-  round(Perf,4)
+
 

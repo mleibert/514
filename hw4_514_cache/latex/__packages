@@ -1,10 +1,5 @@
 base
-methods
-datasets
-utils
-grDevices
-graphics
-stats
 zeallot
 MASS
 downloader
+Matrix
