@@ -28,6 +28,8 @@ source('hw4_514.R')
 library(MASS)
 library(zeallot)
 require(Matrix)
+require("beepr")
+
 n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
 n2=40; mu2=c(1.5,1.5);cov2=diag(.1,2)
 n3=30; mu3=c(1.5,0);  cov3=diag(.1,2)
@@ -279,7 +281,7 @@ newdat <- gen.gaussian.data.2d(mean.cov.list)
 sum(( Predict(newdat[[1]], newdat[[2]], fit$b, fit$W) == newdat[[2]] )*1 ) / length(newdat[[2]])
 
 px <-  seq(  min( newdat[[1]] )-.1 , max( newdat[[1]] )+.1  , .1 )
-Colors <- c("red", "blue", "green", "purple", "yellow")
+Colors <- c("red", "blue", "green", "purple", "gold")
 
 plot(t(newdat[[1]]), pch = 16 , col = "white")
 for( i in 1:length(px) ){
@@ -307,8 +309,21 @@ Using the following URLs download the MNIST data (manually, or you could use the
 LeCun's MNIST data has 60k train samples and 10k test samples
 
 
+**Step 8 Train a model to predict MNIST data**
+
+Use your softmax.fit to train a model on MNIST training data.  Use the load_image_file and load_label_file provided in the hw4_514.R file to read the binary ubyte files
+
+- build a model using softmax.fit using a random sample of 1000 train images using a learning rate of .1 and 100 iterations
+- test model accuracy both in sample and out of sample. Use the provided test data for out-of-sample images and tags
+- plot the cost history of the solution
+- plot weight history
+- plot gradient history
+- plot performance history of the model
+
+
 ```{r, cache=T}
 mtrain <- read.csv("mnist_train.csv" , header = F)
+mtrain <- read.csv("C:\\Users\\Administrator\\Downloads\\mnist_train.csv", header = F)
 test <- read.csv("mnist_test.csv" , header = F)
 colnames(test )[1] <- colnames(mtrain )[1] <- "Y"
 
@@ -342,22 +357,6 @@ names(fit)
 #plot(fit$costs)
 ```
 
-**Step 8 Train a model to predict MNIST data**
-
-Use your softmax.fit to train a model on MNIST training data.  Use the load_image_file and load_label_file provided in the hw4_514.R file to read the binary ubyte files
-
-- build a model using softmax.fit using a random sample of 1000 train images using a learning rate of .1 and 100 iterations
-- test model accuracy both in sample and out of sample. Use the provided test data for out-of-sample images and tags
-- plot the cost history of the solution
-- plot weight history
-- plot gradient history
-- plot performance history of the model
-
-
-```{r}
-
-```
-
 
 
 **Step 9 Train model on full data **
@@ -367,7 +366,16 @@ Re-run the model now using the full 60k train data and check performance using t
 
 
 ```{r full_mnist_model, cache=TRUE}
+x <- unname( mtrain[,-1] )
+x <- t(x)
+y <-  as.matrix( unname(  mtrain[,1] ))
 
+fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 ); beep("coin") 
+
+sum(( Predict(x,  y, fit$b, fit$W) == y )*1 ) / length(y)
+sum(( Predict(nx,  ny, fit$b, fit$W) == ny )*1 ) / length(ny)
+
+plot(fit$peformance)
 
 ```
 **Step 10 Examine Errors **
@@ -375,7 +383,15 @@ Re-run the model now using the full 60k train data and check performance using t
 Score the train data using the model from step 10. For each digit, find the image that scored the highest and the lowest. For example, for all of the '7' images, find the one that scored the highest to be a '7' and the one that scored the lowest to be a '7'. Plot the best/worst side by side. Annotate your images with their prediction. For us, the 'worst' 7 was predicted to be a 2. Use the provided function show_digit2 to display images.
 
 ```{r}
-
+fP <- fwd.prop(x , fit$b, fit$W )
+dim(fP)
+pix <- cbind( t(fP) , as.matrix(y) , 1:nrow(fP))
+head(pix)
+ 
+pix0 <- pix[which(pix[,11] == 0),]
+head( pix0[ which( pix0[,1] == min( pix0[,1] ) ) ,]  )
+show_digit2(x[ , 8 ])
+y[7]
 
 ```
 
@@ -393,3 +409,4 @@ Setting the learning rate is one of the most important parameter in models.  Run
 
 ```
 
+ 
