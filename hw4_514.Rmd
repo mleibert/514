@@ -179,7 +179,7 @@ Next code the softmax.fit function. Arguments include a learning rate parameter 
 - history of timestamps (Sys.time()) 
 - Use print fun to display code in softmax.fit
 
-```{r}
+```{r, echo= F}
 
 softmax.fit <- function(X,Y,lr=.01,max.its=100 ){
 
@@ -323,7 +323,7 @@ Use your softmax.fit to train a model on MNIST training data.  Use the load_imag
 
 ```{r, cache=T}
 mtrain <- read.csv("mnist_train.csv" , header = F)
-mtrain <- read.csv("C:\\Users\\Administrator\\Downloads\\mnist_train.csv", header = F)
+#mtrain <- read.csv("C:\\Users\\Administrator\\Downloads\\mnist_train.csv", header = F)
 test <- read.csv("mnist_test.csv" , header = F)
 colnames(test )[1] <- colnames(mtrain )[1] <- "Y"
 
@@ -340,10 +340,6 @@ x <- unname( mtrains[,-1] )
 x <- t(x)
 x <- x / 255
 y <-  unname( mtrains[,1] )
-
-classes <- sort(unique(as.vector(y)))
-		fP <- fwd.prop(x , fit$b, fit$W )
-		sum( (classes[apply( fP , 2 , function( M ) which( M == max(M) ))] == y ) *1  ) / length(y)
 
 Predict
 fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 );#beep("coin")
