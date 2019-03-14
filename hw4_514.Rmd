@@ -333,10 +333,12 @@ mtrains <- as.matrix(mtrains)
  
 nx <- unname( test[,-1] )
 nx <- t(nx)
+nx <- nx / 255
 ny <-  unname( test[,1] )
 
 x <- unname( mtrains[,-1] )
 x <- t(x)
+x <- x / 255
 y <-  unname( mtrains[,1] )
 
 classes <- sort(unique(as.vector(y)))
@@ -368,12 +370,16 @@ Re-run the model now using the full 60k train data and check performance using t
 ```{r full_mnist_model, cache=TRUE}
 x <- unname( mtrain[,-1] )
 x <- t(x)
+x <- x / 255
 y <-  as.matrix( unname(  mtrain[,1] ))
 
 fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 ); beep("coin") 
 
 sum(( Predict(x,  y, fit$b, fit$W) == y )*1 ) / length(y)
 sum(( Predict(nx,  ny, fit$b, fit$W) == ny )*1 ) / length(ny)
+
+cost
+fwd.prop
 
 plot(fit$peformance)
 
