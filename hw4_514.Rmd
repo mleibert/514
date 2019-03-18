@@ -341,7 +341,6 @@ x <- t(x)
 x <- x / 255
 y <-  unname( mtrains[,1] )
 
-Predict
 fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 );#beep("coin")
 
 sum(( Predict(x,  y, fit$b, fit$W) == y )*1 ) / length(y)
@@ -382,18 +381,22 @@ plot(fit$peformance)
 ```
 **Step 10 Examine Errors **
 
-Score the train data using the model from step 10. For each digit, find the image that scored the highest and the lowest. For example, for all of the '7' images, find the one that scored the highest to be a '7' and the one that scored the lowest to be a '7'. Plot the best/worst side by side. Annotate your images with their prediction. For us, the 'worst' 7 was predicted to be a 2. Use the provided function show_digit2 to display images.
+Score the train data using the model from step 10. For each digit, find the image that scored the highest and the lowest. For example, for all of the '7' images, find the one that scored the highest to be a '7' and the one that scored the lowest to be a '7'. Plot the best/worst side by side. Annotate your images with their prediction. For us, the 'worst' 7 was predicted to be a 2. Use the provided function show_digit2 to display images.   
 
 ```{r}
-fP <- fwd.prop(x , fit$b, fit$W )
-dim(fP)
-pix <- cbind( t(fP) , as.matrix(y) , 1:nrow(fP))
+pix <- cbind( t(fwd.prop(x , fit$b, fit$W )) , as.matrix(y) , 1:length(y))
 head(pix)
  
-pix0 <- pix[which(pix[,11] == 0),]
-head( pix0[ which( pix0[,1] == min( pix0[,1] ) ) ,]  )
-show_digit2(x[ , 8 ])
-y[7]
+no = 9
+pix0 <- pix[which(pix[,11] == no),]
+fP <- fwd.prop( x , fit$b , fit$W )
+minpix <- pix0[which( pix0[,no + 1 ] == min(pix0[,no + 1 ] ) ), ncol(pix0)]
+maxpix <- pix0[which( pix0[,no + 1 ] == max(pix0[,no + 1 ] ) ), ncol(pix0)]
+
+max( fP[,minpix] )
+which( fP[,minpix]  == max( fP[,minpix] ) )-1
+show_digit2(x[,minpix])
+show_digit2(x[,maxpix])
 
 ```
 
