@@ -316,12 +316,6 @@ fwd.prop <- function( X , L, W , B , activation = relu ){
 			a[[1]] <- apply( z[[1]] , c(1,2), activation ) }
 }}
 
-fwd.prop( x , 5 , w , b , sigmoid )
-
-
-z <- b[[1]]  + w[[1]]  %*% x
-fz <- apply( z , c(1,2), sigmoid )
-dim(fz)
-dim(x)
+ 
 
 
