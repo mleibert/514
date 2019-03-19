@@ -3,6 +3,7 @@ title: "hw4_514"
 output:
   pdf_document: default
   html_document: default
+geometry: margin=.75 in
 ---
 
 
@@ -51,10 +52,7 @@ Implement a function called one.hot that takes a vector of integers and returns 
 
 ```{r}
 one.hot <- function(Y){ 
-	Y <- as.factor(Y)
-	OH <- t(model.matrix(aov(rnorm(length( (Y))) ~  (Y) - 1))[
-		1:length(Y),1:nlevels(Y)]); rownames(OH)<-NULL
-	return(OH) }
+	return(unname( as.matrix( as.data.frame( t( model.matrix(~ as.factor(y) + 0) ) ) ) )) }
 ```
 
 
@@ -125,7 +123,7 @@ print.fun('cost');
 Use latex to document the cross-entropy cost calculation. Implement (complete function) the code to return the gradients in a function called bk.prop. Your gradient code should be vectorized. Make sure to divide your total gradient by the number of samples.
 
 
-```{r}
+```{r, echo = F}
 
 bk.prop <- function(X,Y ,fprop ){
 	M <- dim(X)[2]; E <- fprop - one.hot(Y) 
@@ -320,6 +318,21 @@ Use your softmax.fit to train a model on MNIST training data.  Use the load_imag
 - plot gradient history
 - plot performance history of the model
 
+```{r}
+weighthist <- function(BList, WList){
+  WH <- matrix( NA , length(BList)  , 2 )
+  for( i in 1:length(BList)){
+    WH[i,1] <-  norm(BList[[i]],"2")
+    WH[i,2] <-  norm(WList[[i]],"2") }
+  return(WH) }
+
+gradhist <- function(BList, WList){ 
+  GH <- rep(NA, length(BList))
+  for( i in 1:length(BList)){
+  GH[i] <- ( norm( cbind( fit$blist[[i]],fit$wlist[[i]] ) , "2")) }
+  return(GH)
+ }
+```
 
 ```{r, cache=T}
 mtrain <- read.csv("mnist_train.csv" , header = F)
@@ -341,17 +354,19 @@ x <- t(x)
 x <- x / 255
 y <-  unname( mtrains[,1] )
 
-fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 );#beep("coin")
+fits <- fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 );#beep("coin")
 
 sum(( Predict(x,  y, fit$b, fit$W) == y )*1 ) / length(y)
 
 sum(( Predict(nx,  ny, fit$b, fit$W) == ny )*1 ) / length(ny)
+```
 
-names(fit)
-#plot(fit$costs)
-#plot(as.numeric(fit$wlist))
-#plot(fit$peformance)
-#plot(fit$costs)
+```{r}
+par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
+plot(fit$costs, main = "costs", ylab=" ")
+plot(gradhist(fit$blist,fit$wlist) , main = "gradient", ylab=" ")
+plot(fit$peformance, main = "performance", ylab=" ")
+plot(weighthist(fit$blist,fit$wlist) , main = "weights", ylab=" ")
 ```
 
 
@@ -368,35 +383,45 @@ x <- t(x)
 x <- x / 255
 y <-  as.matrix( unname(  mtrain[,1] ))
 
-fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 ); beep("coin") 
+fita <- fit <- softmax.fit( x , y, lr = .1 ,max.its= 100 ); beep("coin") 
 
 sum(( Predict(x,  y, fit$b, fit$W) == y )*1 ) / length(y)
 sum(( Predict(nx,  ny, fit$b, fit$W) == ny )*1 ) / length(ny)
-
-cost
-fwd.prop
-
-plot(fit$peformance)
-
 ```
+
+```{r}
+par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
+plot(fit$costs, main = "costs", ylab=" ")
+plot(gradhist(fit$blist,fit$wlist) , main = "gradient", ylab=" ")
+plot(fit$peformance, main = "performance", ylab=" ")
+plot(weighthist(fit$blist,fit$wlist) , main = "weights", ylab=" ")
+```
+
+\ 
+
 **Step 10 Examine Errors **
 
 Score the train data using the model from step 10. For each digit, find the image that scored the highest and the lowest. For example, for all of the '7' images, find the one that scored the highest to be a '7' and the one that scored the lowest to be a '7'. Plot the best/worst side by side. Annotate your images with their prediction. For us, the 'worst' 7 was predicted to be a 2. Use the provided function show_digit2 to display images.   
 
 ```{r}
 pix <- cbind( t(fwd.prop(x , fit$b, fit$W )) , as.matrix(y) , 1:length(y))
-head(pix)
- 
-no = 9
+
+for( j in seq(0,9, by = 2)){
+par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
+for( k in j:(j+1)){ 
+no = k
 pix0 <- pix[which(pix[,11] == no),]
 fP <- fwd.prop( x , fit$b , fit$W )
-minpix <- pix0[which( pix0[,no + 1 ] == min(pix0[,no + 1 ] ) ), ncol(pix0)]
-maxpix <- pix0[which( pix0[,no + 1 ] == max(pix0[,no + 1 ] ) ), ncol(pix0)]
+minpix <- round( pix0[which( pix0[,no + 1 ] == min(pix0[,no + 1 ] ) ),,drop=F ], 4 )
+maxpix <-  round(pix0[which( pix0[,no + 1 ] == max(pix0[,no + 1 ] ) ), ,drop=F], 4 )
 
-max( fP[,minpix] )
-which( fP[,minpix]  == max( fP[,minpix] ) )-1
-show_digit2(x[,minpix])
-show_digit2(x[,maxpix])
+Minpt <- paste0( "Prediction: ",   (which( minpix == max(minpix[,1:10] ) )-1), ", " , max(minpix[,1:10] ), "%") 
+show_digit2(x[,minpix[,ncol(minpix)]], main = Minpt )
+Maxpt <- paste0( "Prediction: ",   (which( maxpix == max(maxpix[,1:10] ) )-1), ", " , max(maxpix[,1:10] ), "%") 
+show_digit2(x[,maxpix[,ncol(maxpix)]], main = Maxpt  )
+}}
+
+
 
 ```
 
@@ -410,8 +435,29 @@ Setting the learning rate is one of the most important parameter in models.  Run
 - What combination of leaning rate and iterations gave you the best out-of-sample performance?
 
 
-```{r}
+```{r, cache=T}
+fit1 <- softmax.fit( x , y, lr = .5 ,max.its= 1000 );#
+sum(( Predict(x,  y, fit1$b, fit1$W) == y )*1 ) / length(y)
+sum(( Predict(nx,  ny, fit1$b, fit1$W) == ny )*1 ) / length(ny)
 
+fit2 <- softmax.fit( x , y, lr = 1 ,max.its= 50 );#beep("coin")
+sum(( Predict(x,  y, fit2$b, fit2$W) == y )*1 ) / length(y)
+sum(( Predict(nx,  ny, fit2$b, fit2$W) == ny )*1 ) / length(ny)
+
+```
+
+
+
+```{r, cache=T}
+fit3 <- softmax.fit( x , y, lr = 2 ,max.its= 50 );#beep("coin")
+sum(( Predict(x,  y, fit3$b, fit3$W) == y )*1 ) / length(y)
+sum(( Predict(nx,  ny, fit3$b, fit3$W) == ny )*1 ) / length(ny)
+
+```
+
+```{r}
+fit2$st
+fit3$st
 ```
 
  

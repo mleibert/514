@@ -2,7 +2,6 @@
 title: "hw3_514"
 output:
   pdf_document: default
-  html_document: default
 ---
 
 ```{r setup, include=FALSE}
