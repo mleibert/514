@@ -447,7 +447,6 @@ sum(( Predict(nx,  ny, fit2$b, fit2$W) == ny )*1 ) / length(ny)
 ```
 
 
-
 ```{r, cache=T}
 fit3 <- softmax.fit( x , y, lr = 2 ,max.its= 50 );#beep("coin")
 sum(( Predict(x,  y, fit3$b, fit3$W) == y )*1 ) / length(y)
@@ -455,9 +454,19 @@ sum(( Predict(nx,  ny, fit3$b, fit3$W) == ny )*1 ) / length(ny)
 
 ```
 
-```{r}
-fit2$st
-fit3$st
+
+```{r, cache=T}
+fit4 <- softmax.fit( x , y, lr = 5 ,max.its= 50 );#beep("coin")
+sum(( Predict(x,  y, fit4$b, fit4$W) == y )*1 ) / length(y)
+sum(( Predict(nx,  ny, fit4$b, fit4$W) == ny )*1 ) / length(ny)
+
 ```
 
- 
+
+```{r}
+par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
+plot(fit1$costs, main = "lr = .5, max.its= 1000", ylab=" ")
+plot(fit2$costs, main = "lr = 1, max.its= 50", ylab=" ")
+plot(fit3$costs, main = "lr = 2, max.its= 50", ylab=" ")
+plot(fit4$costs, main = "lr = 5, max.its= 50", ylab=" ")
+```

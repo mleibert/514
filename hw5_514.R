@@ -269,13 +269,13 @@ gen.gaussian.data.2d=function(mean.cov.list){
 
 
 cost.squared.error <- function(X,Y,b,w){
-	yhat <- sigmoid( b + X %*% w )
+	yhat <-  Identity(X ,b,w )
 	M = length(yhat)
 	e = matrix(Y - yhat,ncol=1)
 	(1/(2*M) )*sum(e^2) }
 
 cost.negll <- function(X,Y,b,w){
-	yhat <- sigmoid( b + X %*% w )
+	yhat <- Sigmoid( b + X %*% w )
 	M = length(yhat)
 	(-1/M)*sum( Y * log( yhat ) +  (1-Y) * log( 1- yhat ) )	}
 
@@ -296,10 +296,17 @@ cost.cross.entropy <- function(X,Y,b,w){
 
 Identity <- function(X ,b,w){ b  %*% rep( 1, dim(X)[2] )  + w %*% X  }
 
+cost.squared.errors <- function(X,Y,b,w){ 
+	1/( 2 * length( as.vector( Y ) ) ) * norm( Identity(X,b,w)-Y ,"2")^2 }
+	
+
 sigmoid <- function(x) 1 / (1 + exp(-x))
 
 Sigmoid <- function(X ,b,w){ ( 1 / ( 1 + exp( - Identity(X ,b,w) ) ) ) }
 
+cost.negll <- function(X,Y,b,w){
+	(-1 / length(as.vector(Y)))*sum( Y * log( Sigmoid(X ,b,w) ) + (1 - Y ) * 
+	log( 1 - Sigmoid(X ,b,w) )  ) }
 
 stable.softmax <- function( X, b ,w ){
 	Z <- ( b %*% matrix( rep(1, dim(X)[2] ) , nrow = 1) + w %*% X)
@@ -307,6 +314,9 @@ stable.softmax <- function( X, b ,w ){
 	H <- Z %*% (1/colSums( Z ) * Diagonal(dim(Z)[2]) 	)   
 	return( as.matrix(H))  }
 
+cost.cross.entropy <- function(X,Y,b,w){
+	H <- stable.softmax(X,b,w)
+  	(-1/dim(X)[2]) * sum(  colSums( one.hot(Y) * log( H)) )}
 
 
 ######### **Step 4 Implement 3 hidden layer activation functions**
@@ -348,16 +358,16 @@ fwd.prop <- function( X , L, W , B , activation = relu, output = Sigmoid ){
 ##	 X <- xx ; Y <- y ; L <-4 ; W <- wb$W ; B <- wb$B
 
 
-bk.prop <-  function( X, Y, L, W, B, activation = relu, derivative = drelu,
+bk.prop <-  function( X, Y, L, W, B, Activation = relu, derivative = drelu,
 		  Output = Identity ){
 
-	fp <- fwd.prop( X , L  , W , B , output = Output ) 
+	fp <- fwd.prop( X , L, W , B, activation = Activation, output = Output ) 
 	m <- length( as.vector( y ))
 	dz <- dw <- db <- list()
 
-	dz[[l+1]] <- (fp$A[[L+1]]) - Y
-	dw[[l+1]] <- (1/m)*dz[[L+1]] %*% t( fp$A[[L]] )
-	db[[l+1]] <- (1/m)*dz[[L+1]] %*% rep(1, m )
+	dz[[L+1]] <- (fp$A[[L+1]]) - Y
+	dw[[L+1]] <- (1/m)*dz[[L+1]] %*% t( fp$A[[L]] )
+	db[[L+1]] <- (1/m)*dz[[L+1]] %*% rep(1, m )
 
 	for( i in L:1){
 		dz[[i]] <- t( W[[i+1]] ) %*%  dz[[i+1]] *

@@ -55,7 +55,7 @@ init.wgts( dim(x)[1], 2 , 1 )
 
 
 c(xx,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
-lm(t(y)~ t(x) )
+lm(t(y)~ t(xx) )
 
 b0 <- rnorm(1)
 w0 <- rnorm(1)
@@ -69,23 +69,36 @@ xx <- rbind( xx   ,rnorm(20)  )
 wb <- init.wgt( l , c(3,5,4,2) , xx) 
 lapply(wb$W , dim )
 
-a <- fwd.prop( xx , l , wb$W , wb$B , output = Identity ) 
-m <- length( as.vector( y ))
-dz <- dw <- db <- list()
 
-dz[[l+1]] <- a[[l+1]]-y
-dw[[l+1]] <- (1/m)*dz[[l+1]] %*% t( a[[l]] )
-db[[l+1]] <- (1/m)*dz[[l+1]] %*% rep(1, m )
 
-for( i in l:1){
-	dz[[i]] <- t( wb$W[[i+1]] ) %*%  dz[[i+1]] *
-		apply( a$Z[[i ]] , c(1,2), drelu )
-	if( i == 1){ AA <- xx } else{ AA <- a$A[[i-1]] }
-	dw[[i]] <- (1/m)*dz[[i]] %*% t( AA  )
-	db[[i]] <- (1/m)*dz[[i]] %*% rep(1, m )
-}
+# Implement a numerical gradients function and use it to test each
+# of the 3 cost functions. You can used tanh for the hidden 
+# activation function for the gradient checking for all 3 cost functions.  
+
+# Test gradients for squared error cost with identity output 
+# activation using data from data.lawrence.giles function provided
+
+# Test gradients for negative log-likelihood error with sigmoid output 
+# activation using data from spiral data
+
+# Test gradients for cross-entropy error with numerically stable 
+# softmax output activation using data for 3 class mixture provided below
+ 
+
 
  
-bk.prop( xx, y, 4, wb$W, wb$B )
+bk.prop( xx, y, 4, wb$W, wb$B , Activation = tanh, derivative = dtanh,
+		  Output = Identity )$db
+
+  
+
+
+cost.squared.errors(xx, y, bM, wb$W[[5]] ) 
+
+
+
+
+
+
 
 
