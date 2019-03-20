@@ -246,8 +246,22 @@ generate.2d.dataset=function(n1=30,m1=c(1,1),c1=diag(c(1,1)),
   y=as.integer(data[,ncol(data)]==max(data[,ncol(data)]))
   list(x=x,y=y)
 }
-
-
+library(MASS)
+require(mvtnorm )
+gen.gaussian.data.2d=function(mean.cov.list){
+  data=list()
+  for(params in mean.cov.list){
+    n=params$n
+    mu=params$mu
+    cov=params$cov
+    print(mu)
+    data[[length(data)+1]]=mvrnorm(n,mu,cov)
+  }
+  X=t(do.call(rbind,data))
+  y=matrix(rep(1:length(mean.cov.list),sapply(mean.cov.list,'[[',"n")),nrow=1)
+  
+  return(list(X,y))
+}
 
 
 ############## **Step 2 implement 3 cost functions**
@@ -280,7 +294,7 @@ cost.cross.entropy <- function(X,Y,b,w){
 
 ############## **Step 3 Implement 3 output activation functions**
 
-Identity <- function(X ,b,w){  	b + X %*% w  }
+Identity <- function(X ,b,w){ b  %*% rep( 1, dim(X)[2] )  + w %*% X  }
 
 sigmoid <- function(x) 1 / (1 + exp(-x))
 
@@ -297,25 +311,68 @@ stable.softmax <- function( X, b ,w ){
 
 ######### **Step 4 Implement 3 hidden layer activation functions**
 
-relu <- function(X){ max( c(0,X) )  }
+relu <- function(X){   max( c(0,X) )   }
 drelu <- function(X){ ifelse( X < 0 , 0 , 1 ) }
 
 dtanh <- function(X){1-tanh(X)^2 }
 
 dsigmoid <- function(X){ sigmoid(X) * (1-sigmoid(X) ) }
  
-fwd.prop <- function( X , L, W , B , activation = relu ){
 
-	z <- a <- list()
-	z[[1]] <- B[[1]]  + W[[1]]  %*% X
-	a[[1]] <- apply( z[[1]] , c(1,2), activation )
 
-	if ( L > 1 ) {
-		for( i in 2:L ) {
-			z[[i]] <- B[[i]]  + W[[i]]  %*% a[[i-1]]
-			a[[1]] <- apply( z[[1]] , c(1,2), activation ) }
-}}
+
+init.wgt <- function( layers , nodes , X ){
+	W <- B <- list()
+	node <- c( dim(X)[1] , nodes, 1 )
+	for( i in 1:(layers+1) ){
+		W[[i]] <- matrix(rnorm(node[i]*node[i+1],.1),node[i+1],node[i ])
+		B[[i]] <- matrix(rnorm(  node[i+1],.1 ) , node[i+1] , 1 )}
+	return(list( W = W , B = B) ) }
 
  
+
+
+fwd.prop <- function( X , L, W , B , activation = relu, output = Sigmoid ){
+ 
+	A <- Z <- list()
+	for( i in 1:L){
+		if( i == 1 ){ AA <- X } else  { AA <- A[[i-1]] }
+		Z[[i]] <- B[[i]] %*%  rep( 1, dim(AA)[2] ) +  ( W[[i]] ) %*% AA
+		A[[i]] <- apply( Z[[i]] , c(1,2), activation ) 	}
+
+	Z[[L+1]] <-B[[L+1]] %*%  rep( 1, dim(AA)[2] ) + W[[L+1]] %*% A[[L]]
+	A[[L+1]] <-  output( A[[L]],B[[L+1]] , W[[L+1]]  )
+	 return( list( A = A , Z = Z )  )
+} 
+
+##	 X <- xx ; Y <- y ; L <-4 ; W <- wb$W ; B <- wb$B
+
+
+bk.prop <-  function( X, Y, L, W, B, activation = relu, derivative = drelu,
+		  Output = Identity ){
+
+	fp <- fwd.prop( X , L  , W , B , output = Output ) 
+	m <- length( as.vector( y ))
+	dz <- dw <- db <- list()
+
+	dz[[l+1]] <- (fp$A[[L+1]]) - Y
+	dw[[l+1]] <- (1/m)*dz[[L+1]] %*% t( fp$A[[L]] )
+	db[[l+1]] <- (1/m)*dz[[L+1]] %*% rep(1, m )
+
+	for( i in L:1){
+		dz[[i]] <- t( W[[i+1]] ) %*%  dz[[i+1]] *
+			apply( fp$Z[[i ]] , c(1,2), derivative )
+		if( i == 1){ AA <- X } else{ AA <- fp$A[[i-1]] }
+		dw[[i]] <- (1/m)*dz[[i]] %*% t( AA  )
+		db[[i]] <- (1/m)*dz[[i]] %*% rep(1, m )
+	}
+	return( list(dz = dz , db= db , dw=dw ) ) }
+
+
+
+
+
+
+
 
 
