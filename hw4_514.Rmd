@@ -122,6 +122,27 @@ print.fun('cost');
 
 Use latex to document the cross-entropy cost calculation. Implement (complete function) the code to return the gradients in a function called bk.prop. Your gradient code should be vectorized. Make sure to divide your total gradient by the number of samples.
 
+\ 
+
+\begin{align*}
+\sum_{i=1}^m \cfrac{\partial C^{(i)}}{\partial {\bf w} }  &=
+\sum_{i=1}^m \cfrac{\partial C^{(i)}}{\partial {\bf z^{(i)}} } \left( {\bf x}^{(i)} \right)^T \\[.5 em]
+&= \cfrac{\partial C}{\partial Z} \  X^T \\[.5 em]
+&= \Big( S(Z) - T \Big) X^T
+\end{align*}
+
+\begin{align*}
+\langle \cfrac{\partial C}{ \partial b } \rangle &= 
+\cfrac{1}{m} \Big(S(Z) - T  \Big) \begin{pmatrix} 1 \\[.2 em]
+1 \\[.2 em] \vdots \\ 1 \end{pmatrix} \\
+\langle \cfrac{\partial C}{ \partial W } \rangle &=
+\cfrac{1}{m} \Big(S(Z) - T  \Big) \ X^T
+\end{align*}
+
+
+
+\ 
+
 
 ```{r, echo = F}
 
@@ -329,7 +350,7 @@ weighthist <- function(BList, WList){
 gradhist <- function(BList, WList){ 
   GH <- rep(NA, length(BList))
   for( i in 1:length(BList)){
-  GH[i] <- ( norm( cbind( fit$blist[[i]],fit$wlist[[i]] ) , "2")) }
+  GH[i] <- ( norm( cbind( BList[[i]],WList[[i]] ) , "2")) }
   return(GH)
  }
 ```
@@ -366,7 +387,8 @@ par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
 plot(fit$costs, main = "costs", ylab=" ")
 plot(gradhist(fit$blist,fit$wlist) , main = "gradient", ylab=" ")
 plot(fit$peformance, main = "performance", ylab=" ")
-plot(weighthist(fit$blist,fit$wlist) , main = "weights", ylab=" ")
+plot( sapply(fit$blist, function(BB) norm(BB,"2")) , main = "weights", ylab=" ", ylim = c(0,4))
+points( sapply(fit$wlist, function(BB) norm(BB,"2")) , main = "weights", ylab=" ", col = "red")
 ```
 
 
@@ -394,7 +416,8 @@ par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
 plot(fit$costs, main = "costs", ylab=" ")
 plot(gradhist(fit$blist,fit$wlist) , main = "gradient", ylab=" ")
 plot(fit$peformance, main = "performance", ylab=" ")
-plot(weighthist(fit$blist,fit$wlist) , main = "weights", ylab=" ")
+plot( sapply(fit$blist, function(BB) norm(BB,"2")) , main = "weights", ylab=" ", ylim = c(0,4))
+points( sapply(fit$wlist, function(BB) norm(BB,"2")) , main = "weights", ylab=" ", col = "red")
 ```
 
 \ 
@@ -470,3 +493,8 @@ plot(fit2$costs, main = "lr = 1, max.its= 50", ylab=" ")
 plot(fit3$costs, main = "lr = 2, max.its= 50", ylab=" ")
 plot(fit4$costs, main = "lr = 5, max.its= 50", ylab=" ")
 ```
+
+```{r}
+fita$st
+```
+

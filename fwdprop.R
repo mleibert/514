@@ -89,16 +89,31 @@ lapply(wb$W , dim )
  
 bk.prop( xx, y, 4, wb$W, wb$B , Activation = tanh, derivative = dtanh,
 		  Output = Identity )$db
+ 
+ 
+weightz <- init.wgts(1 , 2 ,  1 )
+z <- a <- dz <- db <- dw <- list()
+
+z[[1]] <- as.matrix( weightz$b1 ) %*%  rep( 1, dim(xx)[2] ) +
+	 ( weightz$w1 ) %*% xx
+a[[1]] <- apply(  z[[1]] , c(1,2) ,  tanh )
+
+z[[2]] <- as.matrix( weightz$b2 ) %*%  rep( 1, dim(xx)[2] ) +
+	 ( weightz$w2 ) %*% a[[1]]
+a[[2]] <- sigmoid(z[[2]])
+
+#testW <- init.wgt( 1, 2 , xx )
+fwd.prop( xx , 1 , list( weightz$w1, weightz$w2 ) , list( as.matrix(
+	weightz$b1 ) , as.matrix( weightz$b2 )  ) , activation = tanh, 
+	output = Sigmoid)$A 
+
+dz[[2]] <- a[[2]] - y
+dw[[2]] <- (1/20) * dz[[2]] %*% t( a[[1]] )
+db[[2]] <- (1/20) * dz[[2]] %*% rep(1, 20 )
+
+
+
+
 
   
-
-
-cost.squared.errors(xx, y, bM, wb$W[[5]] ) 
-
-
-
-
-
-
-
-
+ 
