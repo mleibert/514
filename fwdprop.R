@@ -112,8 +112,12 @@ dw[[2]] <- (1/20) * dz[[2]] %*% t( a[[1]] )
 db[[2]] <- (1/20) * dz[[2]] %*% rep(1, 20 )
 
 
+Identity
+cost.negll( a[[1]]  , y ,  weightz$b2 , weightz$w2 ) 
 
+b  %*% rep( 1, dim(X)[2] )  + w %*% X
 
+weightz$b2
+weightz$w2
 
-  
- 
+  weightz$w2 %*%  (a[[1]] )
