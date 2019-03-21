@@ -25,6 +25,7 @@ You will complete the following functions as part of this homework and some addi
 Use the code chunk below to to create a dataset.  This chunk creates a data set that is a mixture of 3 classes of 2d normals with different means and variances. Use the plot provided to visualize the data.
 
 ```{r}
+setwd("G:\\math\\514")
 source('hw4_514.R')
 library(MASS)
 library(zeallot)

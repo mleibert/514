@@ -1,5 +1,4 @@
-setwd("G:\\math\\514")
-source('hw4_514.R')
+
 library(MASS)
 library(zeallot)
 require(beepr)

@@ -65,31 +65,12 @@ w0 <- rnorm(1)
 
 l <- 4
 dim(xx)
-xx <- rbind( xx   ,rnorm(20)  )
+#xx <- rbind( xx   ,rnorm(20)  )
 wb <- init.wgt( l , c(3,5,4,2) , xx) 
 lapply(wb$W , dim )
 
 
 
-# Implement a numerical gradients function and use it to test each
-# of the 3 cost functions. You can used tanh for the hidden 
-# activation function for the gradient checking for all 3 cost functions.  
-
-# Test gradients for squared error cost with identity output 
-# activation using data from data.lawrence.giles function provided
-
-# Test gradients for negative log-likelihood error with sigmoid output 
-# activation using data from spiral data
-
-# Test gradients for cross-entropy error with numerically stable 
-# softmax output activation using data for 3 class mixture provided below
- 
-
-
- 
-bk.prop( xx, y, 4, wb$W, wb$B , Activation = tanh, derivative = dtanh,
-		  Output = Identity )$db
- 
  
 weightz <- init.wgts(1 , 2 ,  1 )
 z <- a <- dz <- db <- dw <- list()
@@ -107,17 +88,64 @@ fwd.prop( xx , 1 , list( weightz$w1, weightz$w2 ) , list( as.matrix(
 	weightz$b1 ) , as.matrix( weightz$b2 )  ) , activation = tanh, 
 	output = Sigmoid)$A 
 
+
 dz[[2]] <- a[[2]] - y
 dw[[2]] <- (1/20) * dz[[2]] %*% t( a[[1]] )
 db[[2]] <- (1/20) * dz[[2]] %*% rep(1, 20 )
 
 
-Identity
-cost.negll( a[[1]]  , y ,  weightz$b2 , weightz$w2 ) 
+ 
+#  b  %*% rep( 1, dim(X)[2] )  + w %*% X 
 
-b  %*% rep( 1, dim(X)[2] )  + w %*% X
+weightz$b2 %*% rep( 1, dim( a[[1]] )[2] )
+dim( weightz$w2 )
+dim( a[[2]] )
+weightz$w2 %*% a[[2]]
+cost.negll( a[[1]] , y  , weightz$b2, weightz$w2 )
 
-weightz$b2
-weightz$w2
 
-  weightz$w2 %*%  (a[[1]] )
+
+
+
+
+
+# Implement a numerical gradients function and use it to test each
+# of the 3 cost functions. You can used tanh for the hidden 
+# activation function for the gradient checking for all 3 cost functions.  
+
+# Test gradients for squared error cost with identity output 
+# activation using data from data.lawrence.giles function provided
+
+# Test gradients for negative log-likelihood error with sigmoid output 
+# activation using data from spiral data
+
+# Test gradients for cross-entropy error with numerically stable 
+# softmax output activation using data for 3 class mixture provided below
+ 
+
+aa <- fwd.prop( xx , 4, wb$W, wb$B, activation = tanh, output = Sigmoid )
+
+ 
+bk.prop( xx, y, 4, wb$W, wb$B , Activation = tanh, derivative = dtanh,
+		  Output = Sigmoid )$dw
+
+num.gradient( xx,y, 4 , wb$B,wb$W,h=1e-8 , tanh, Sigmoid   ) 
+ 
+
+xa <-  aa$A
+xa[[length(xa)+1]]  <-  xx
+
+dbb <- list()
+xa
+hhh <- .000001
+for( i in  5:4 ) {
+	dbb[[i]] <- ( cost.negll( xa[[i-1]], y, wb$B[[i]] + hhh , wb$W[[i]] ) - 
+	cost.negll(xa[[i-1]], y  , wb$B[[i]] - hhh , wb$W[[i]] )  ) / (2*hhh) } 
+
+(cost.negll( xa[[i-1]], y  , wb$B[[i]] + hhh , wb$W[[i]] ) -
+cost.negll( xa[[i-1]], y  , wb$B[[i]] - hhh , wb$W[[i]] ) ) / (2*hhh)
+ 
+
+num.gradient( aa$A[[4]] , y ,  ( wb$B[[5]] ) , wb$W[[5]] )
+
+ 

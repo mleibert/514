@@ -274,15 +274,10 @@ cost.squared.error <- function(X,Y,b,w){
 	e = matrix(Y - yhat,ncol=1)
 	(1/(2*M) )*sum(e^2) }
 
-cost.negll <- function(X,Y,b,w){
-	yhat <- Sigmoid( b + X %*% w )
-	M = length(yhat)
-	(-1/M)*sum( Y * log( yhat ) +  (1-Y) * log( 1- yhat ) )	}
-
-NLL <- function(X,Y,b,w ){
-	yhat= sigmoid( b + X %*% w )
-	M = length(yhat)
-	(-1/M)*(sum(log(yhat[Y==1]))+sum(log(1-yhat[Y==0])))}
+cost.negll <- function(X,Y,B,W){
+	yhat <- Sigmoid( X ,B,W )
+	M = length(as.vector(y))
+	(-1/M)*sum( ( Y * log( yhat ) ) +  ( (1-Y) * log( 1- yhat ) ) )}
 
 
 
@@ -355,6 +350,21 @@ fwd.prop <- function( X , L, W , B , activation = relu, output = Sigmoid ){
 	 return( list( A = A , Z = Z )  )
 } 
 
+fwd.props <- function( X , L, W, B , activation = relu, output = Sigmoid ){
+ 
+	A <- Z <- list()
+	A[[1]] <- X
+	for( i in 1:L){
+		Z[[i]] <- B[[i]] %*%  rep( 1, dim(A)[2] ) +  ( W[[i]] ) %*% A
+		A[[i]] <- apply( Z[[i]] , c(1,2), activation ) 	}
+
+	Z[[L+1]] <-B[[L+1]] %*%  rep( 1, dim(A)[2] ) + W[[L+1]] %*% A[[L]]
+	A[[L+1]] <-  output( A[[L]],B[[L+1]] , W[[L+1]]  )
+	 return( list( A = A , Z = Z )  )
+} 
+
+
+
 ##	 X <- xx ; Y <- y ; L <-4 ; W <- wb$W ; B <- wb$B
 
 
@@ -381,6 +391,18 @@ bk.prop <-  function( X, Y, L, W, B, Activation = relu, derivative = drelu,
 
 
 
+num.gradient <- function( X, Y, B,W,h=1e-8   , cost = cost.negll )  {
+	dB <- dW <- list()
+	for( i in 1:length(B) ) {
+	bP <- bM <-as.vector( B ) ; bP[i] <- bP[i] + h ; bM[i] <- bM[i] - h
+	dB[[i]] <- (cost(X, Y , bP , W ) - cost(X, Y, bM, W  ) ) / (2*h)  }
+	dW <- W*0
+	for( i in 1:nrow(W) ){
+	for( j in 1:ncol(W) ) {
+		wP <- wM <- W ; wP[i,j] <- wP[i,j]+h; wM[i,j] <- wM[i,j]-h
+		dW[i,j] <- (cost(X, Y , B , wP ) - cost(X, Y, B, wM ) ) / (2*h)
+	}}
+	return( list(dB = dB , dW =  dW) )} 
 
 
 
