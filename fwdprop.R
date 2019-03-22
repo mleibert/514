@@ -69,32 +69,58 @@ dim(xx)
 wb <- init.wgt( l , c(3,5,4,2) , xx) 
 lapply(wb$W , dim )
 
+require(beepr)
 
-
+Lr <-  .1
  
-weightz <- init.wgts(1 , 2 ,  1 )
+weightz <- init.wgt(1 , 2 ,  xx )
 z <- a <- dz <- db <- dw <- list()
+weightz$b1 <- weightz$B[[1]] 
+weightz$b2 <- weightz$B[[2]] 
 
+weightz$w1 <-  weightz$W[[1]] 
+weightz$w2 <-  weightz$W[[2]]
+
+
+
+
+for(i in 1:400000){
 z[[1]] <- as.matrix( weightz$b1 ) %*%  rep( 1, dim(xx)[2] ) +
 	 ( weightz$w1 ) %*% xx
 a[[1]] <- apply(  z[[1]] , c(1,2) ,  tanh )
 
 z[[2]] <- as.matrix( weightz$b2 ) %*%  rep( 1, dim(xx)[2] ) +
 	 ( weightz$w2 ) %*% a[[1]]
-a[[2]] <- sigmoid(z[[2]])
+a[[2]] <- Identity(a[[1]], weightz$b2 , weightz$w2 )
 
-#testW <- init.wgt( 1, 2 , xx )
-fwd.prop( xx , 1 , list( weightz$w1, weightz$w2 ) , list( as.matrix(
-	weightz$b1 ) , as.matrix( weightz$b2 )  ) , activation = tanh, 
-	output = Sigmoid)$A 
+ 
+#fwd.prop( xx , 1 , list( weightz$w1, weightz$w2 ) , list( as.matrix(
+#	weightz$b1 ) , as.matrix( weightz$b2 )  ) , activation = tanh, 
+#	output = Identity)$A 
 
 
 dz[[2]] <- a[[2]] - y
 dw[[2]] <- (1/20) * dz[[2]] %*% t( a[[1]] )
 db[[2]] <- (1/20) * dz[[2]] %*% rep(1, 20 )
 
+dz[[1]] <-  (apply( z[[1]] , c(1,2) , dtanh)) * ( t(weightz$w2 ) %*% dz[[2]])
 
+dw[[1]] <- (1/20) * dz[[1]] %*% t( xx )
+db[[1]] <- (1/20) * dz[[1]] %*% rep(1, 20 )
+
+weightz$b1 <- weightz$b1 - Lr * db[[1]]
+weightz$b2 <- weightz$b2 - Lr * db[[2]]
+weightz$w1 <- weightz$w1 - Lr * dw[[1]]
+weightz$w2 <- weightz$w2 - Lr * dw[[2]]
+
+}; beep("mario")
+
+dev.new()
+plot(as.vector(y), ylim = c(-2,2) )
+lines( as.vector(a[[2]]))
  
+ aaaa <- a[[2]]
+
 #  b  %*% rep( 1, dim(X)[2] )  + w %*% X 
 
 weightz$b2 %*% rep( 1, dim( a[[1]] )[2] )
