@@ -56,10 +56,7 @@ init.wgts( dim(x)[1], 2 , 1 )
 
 c(xx,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
 lm(t(y)~ t(xx) )
-
-b0 <- rnorm(1)
-w0 <- rnorm(1)
-
+ 
 ## Temp example squared error cost with 
 ## identity output activation using data from data.lawrence.giles
 
@@ -71,9 +68,12 @@ lapply(wb$W , dim )
 
 require(beepr)
 
-Lr <-  .1
+Lr <-  .3
  
-weightz <- init.wgt(1 , 2 ,  xx )
+weightz <- init.wgt(1 , 22 ,  xx ) 
+ 
+
+ 
 z <- a <- dz <- db <- dw <- list()
 weightz$b1 <- weightz$B[[1]] 
 weightz$b2 <- weightz$B[[2]] 
@@ -84,7 +84,7 @@ weightz$w2 <-  weightz$W[[2]]
 
 
 
-for(i in 1:400000){
+for(i in 1:100000){
 z[[1]] <- as.matrix( weightz$b1 ) %*%  rep( 1, dim(xx)[2] ) +
 	 ( weightz$w1 ) %*% xx
 a[[1]] <- apply(  z[[1]] , c(1,2) ,  tanh )
@@ -113,7 +113,10 @@ weightz$b2 <- weightz$b2 - Lr * db[[2]]
 weightz$w1 <- weightz$w1 - Lr * dw[[1]]
 weightz$w2 <- weightz$w2 - Lr * dw[[2]]
 
+if ( is.nan(dw[[2]][1]) == T ) {break}
 }; beep("mario")
+
+a[[2]]
 
 dev.new()
 plot(as.vector(y), ylim = c(-2,2) )
@@ -233,22 +236,59 @@ wb <- init.wgt( HL , 100 , xx)
 w0 <- wb$W
 b0 <- wb$B
 system.time( 
-for( i in 1:10 ) {
+for( i in 1:100000 ) {
 	FP <- fwd.prop( xx , HL , w0, b0, tanh, Identity)
 	BP <- bk.prop(xx,y,HL ,w0, b0, FP$Z, FP$A , tanh, dtanh)
 for( j in 1:(HL + 1)  ){
 	b0[[j]] <- b0[[j]] - .1 * BP$db[[j]]
 	w0[[j]] <- w0[[j]] - .1 * BP$dw[[j]]
-	}
+	if( is.nan(w0[[j]][1])== T ){break} }
+	
+	if( C1 < C2 ){ 
+
  });beep("coin")
 
 
-FP$A[[5]]
+#####
 
+
+wb <- init.wgt( HL , 100 , xx) 
+Lr <- 1.5
+w0 <- wb$W
+b0 <- wb$B
+C2 <- 1
+F
+Nsim <- 200000
+FP <- rep(NA, Nsim)
+
+# about 25 mins / 102890 iterations to convergenec
+system.time( 
+for( i in 1:200000) {
+	FP  <- fwd.prop( xx , HL , w0, b0, tanh, Identity)
+	C2 <- (1/( 2 * length(as.vector( y ) ))) * 
+		( norm( FP$A[[2]] - y  ,"2")^2  ) 
+	BP <- bk.prop(xx,y,HL ,w0, b0, FP$Z, FP$A , tanh, dtanh)
+	
+	BOld <- b0; WOld <- w0
+for( j in 1:(HL + 1)  ){
+	b0[[j]] <- b0[[j]] - Lr * BP$db[[j]]
+	w0[[j]] <- w0[[j]] - Lr * BP$dw[[j]]
+	if( is.nan(FP$A[[2]]) == T ) {break}  }
+
+	if( C1 < C2 ){ i = i-1; Lr <- Lr *.5; b0 <- BOld; w0 <- WOld  } else {
+		Lr <- Lr * 1.1  }
+	C1 <- C2
+	Lr <- ifelse( Lr > 1.5 , 1.5, Lr ) 
+	if( i %in% seq(1, 100000, 10 ) ) {plot( as.vector( y  ) , pch = 3)}
+	if( i %in% seq(1, 100000, 10 ) ) { lines( as.vector( FP$A[[2]]  ) ) }
+	if( i %in% seq(1, 100000, 10 ) ) {  print(Lr); print(C2) } 
+})
+ 
+dev.new()
 plot( as.vector( y  ) , pch = 3) 
-lines( as.vector( FP$A[[5]]  ) )
+lines( as.vector( FP$A[[2]]  ) )
 
-
+aaaaa <- rep(1, 1000000 )
 
 
   c(X,Y,xgrid,ygrid) %<-% data.lawrence.giles(12345)

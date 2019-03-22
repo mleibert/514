@@ -330,8 +330,8 @@ init.wgt <- function( layers , nodes , X ){
 	W <- B <- list()
 	node <- c( dim(X)[1] , nodes, 1 )
 	for( i in 1:(layers+1) ){
-		W[[i]] <- matrix(rnorm(node[i]*node[i+1],.1),node[i+1],node[i ])
-		B[[i]] <- matrix(rnorm(  node[i+1],.1 ) , node[i+1] , 1 )}
+		W[[i]] <- .01*matrix(rnorm(node[i]*node[i+1],.1),node[i+1],node[i ])
+		B[[i]] <-.01* matrix(rnorm(  node[i+1],.1 ) , node[i+1] , 1 )}
 	return(list( W = W , B = B) ) }
 
  
@@ -391,7 +391,7 @@ bk.props <-  function( X, Y, L, W, B, Activation = relu, derivative = drelu,
 
 
 
-num.gradient <- function( X, Y, B,W,h=1e-8   , cost = cost.negll )  {
+num.gradient <- function( X, Y, B,W,h=1e-8 , cost = cost.negll )  {
 	dB <- dW <- list()
 	for( i in 1:length(B) ) {
 	bP <- bM <-as.vector( B ) ; bP[i] <- bP[i] + h ; bM[i] <- bM[i] - h
