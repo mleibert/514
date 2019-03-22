@@ -350,25 +350,25 @@ fwd.prop <- function( X , L, W , B , activation = relu, output = Sigmoid ){
 	 return( list( A = A , Z = Z )  )
 } 
 
-fwd.props <- function( X , L, W, B , activation = relu, output = Sigmoid ){
- 
-	A <- Z <- list()
-	A[[1]] <- X
-	for( i in 1:L){
-		Z[[i]] <- B[[i]] %*%  rep( 1, dim(A)[2] ) +  ( W[[i]] ) %*% A
-		A[[i]] <- apply( Z[[i]] , c(1,2), activation ) 	}
-
-	Z[[L+1]] <-B[[L+1]] %*%  rep( 1, dim(A)[2] ) + W[[L+1]] %*% A[[L]]
-	A[[L+1]] <-  output( A[[L]],B[[L+1]] , W[[L+1]]  )
-	 return( list( A = A , Z = Z )  )
-} 
+#fwd.props <- function( X , L, W, B , activation = relu, output = Sigmoid ){
+#
+#	A <- Z <- list()
+#	A[[1]] <- X
+#	for( i in 1:L){
+#		Z[[i]] <- B[[i]] %*%  rep( 1, dim(A)[2] ) +  ( W[[i]] ) %*% A
+#		A[[i]] <- apply( Z[[i]] , c(1,2), activation ) 	}
+#
+#	Z[[L+1]] <-B[[L+1]] %*%  rep( 1, dim(A)[2] ) + W[[L+1]] %*% A[[L]]
+#	A[[L+1]] <-  output( A[[L]],B[[L+1]] , W[[L+1]]  )
+#	 return( list( A = A , Z = Z )  )
+#} 
 
 
 
 ##	 X <- xx ; Y <- y ; L <-4 ; W <- wb$W ; B <- wb$B
 
 
-bk.prop <-  function( X, Y, L, W, B, Activation = relu, derivative = drelu,
+bk.props <-  function( X, Y, L, W, B, Activation = relu, derivative = drelu,
 		  Output = Identity ){
 
 	fp <- fwd.prop( X , L, W , B, activation = Activation, output = Output ) 
@@ -406,5 +406,28 @@ num.gradient <- function( X, Y, B,W,h=1e-8   , cost = cost.negll )  {
 
 
 
+bk.prop <-  function( X, Y, L, W, B,  Z , A,  Activation = relu, 
+		derivative = drelu  ){
+
+	m <- length( as.vector( Y ))
+	dz <- dw <- db <- list()
+	A[[length(A)+1]] <- X
+	A <- A[ c(length(A), 1:(length(A)-1) ) ]
+
+ 	ell <- L+1
+	dz[[ell]] <- A[[ell+1]] - Y
+	
+	while( ell >= 1 ){
+		
+		dw[[ell]] <- (1/m) * dz[[ell]] %*% t( A[[ell]] )  
+		db[[ell]] <- (1/m)*dz[[ell]] %*% rep(1, m )
+		
+		if( ell > 1) {
+			dz[[ell-1]] <- t( W[[ell]] ) %*%  dz[[ell]] *
+			apply( Z[[ell-1]] , c(1,2), derivative ) }
+			ell <- ell - 1 } 
+
+	return( list(dz = dz , db= db , dw=dw ) ) }
+ 
 
 

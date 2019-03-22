@@ -179,10 +179,11 @@ print.fun('num.gradient');
 print.fun('bk.prop');
 
 dim(x)
-
+dim(w0)
 b0 <- rnorm(3)
 w0 <- matrix(rnorm(3*dim(x)[1]),3,dim(x)[1])
 
+fwd.prop
 bk.prop(x,y ,fwd.prop(x,b0,w0) )
 num.gradient(cost,x,y,b0,w0)
 
