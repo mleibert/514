@@ -227,19 +227,21 @@ aaaa <- aa$A
 ########################################################################
 
 
+setwd("G:\\math\\514")
+source("hw5_514.r")
 c(xx,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
 
-HL <- 1
-wb <- init.wgt( HL , 100 , xx) 
+Hl <- 1
+wb <- init.wgt( Hl , 100 , xx) 
 
 
 w0 <- wb$W
 b0 <- wb$B
 system.time( 
 for( i in 1:100000 ) {
-	FP <- fwd.prop( xx , HL , w0, b0, tanh, Identity)
-	BP <- bk.prop(xx,y,HL ,w0, b0, FP$Z, FP$A , tanh, dtanh)
-for( j in 1:(HL + 1)  ){
+	FP <- fwd.prop( xx , Hl , w0, b0, tanh, Identity)
+	BP <- bk.prop(xx,y,Hl ,w0, b0, FP$Z, FP$A , tanh, dtanh)
+for( j in 1:(Hl + 1)  ){
 	b0[[j]] <- b0[[j]] - .1 * BP$db[[j]]
 	w0[[j]] <- w0[[j]] - .1 * BP$dw[[j]]
 	if( is.nan(w0[[j]][1])== T ){break} }
@@ -251,12 +253,12 @@ for( j in 1:(HL + 1)  ){
 
 #####
 
-
-wb <- init.wgt( HL , 100 , xx) 
+Hl <- 1
+wb <- init.wgt( 1 , 100 , xx) 
 Lr <- 1.5
 w0 <- wb$W
 b0 <- wb$B
-C2 <- 1
+C2 <- C1 <- 0
 F
 Nsim <- 200000
 FP <- rep(NA, Nsim)
@@ -264,25 +266,27 @@ FP <- rep(NA, Nsim)
 # about 25 mins / 102890 iterations to convergenec
 system.time( 
 for( i in 1:200000) {
-	FP  <- fwd.prop( xx , HL , w0, b0, tanh, Identity)
+	FP  <- fwd.prop( xx , Hl , w0, b0, tanh, Identity)
 	C2 <- (1/( 2 * length(as.vector( y ) ))) * 
 		( norm( FP$A[[2]] - y  ,"2")^2  ) 
-	BP <- bk.prop(xx,y,HL ,w0, b0, FP$Z, FP$A , tanh, dtanh)
+	BP <- bk.prop(xx,y,Hl ,w0, b0, FP$Z, FP$A , tanh, dtanh)
 	
 	BOld <- b0; WOld <- w0
-for( j in 1:(HL + 1)  ){
+for( j in 1:(Hl + 1)  ){
 	b0[[j]] <- b0[[j]] - Lr * BP$db[[j]]
 	w0[[j]] <- w0[[j]] - Lr * BP$dw[[j]]
-	if( is.nan(FP$A[[2]]) == T ) {break}  }
+	if( is.nan( FP$A[[2]][1] ) == T ) {break}  }
 
 	if( C1 < C2 ){ i = i-1; Lr <- Lr *.5; b0 <- BOld; w0 <- WOld  } else {
 		Lr <- Lr * 1.1  }
 	C1 <- C2
+	
 	Lr <- ifelse( Lr > 1.5 , 1.5, Lr ) 
-	if( i %in% seq(1, 100000, 10 ) ) {plot( as.vector( y  ) , pch = 3)}
-	if( i %in% seq(1, 100000, 10 ) ) { lines( as.vector( FP$A[[2]]  ) ) }
-	if( i %in% seq(1, 100000, 10 ) ) {  print(Lr); print(C2) } 
-})
+	if( i %in% seq(1, 100000, 10 ) ) {  print(Lr); print(C2)}
+	plot( as.vector( y  ) , pch = 3)
+	lines( as.vector( FP$A[[2]]  ) )
+	#if( ((C2 - C1) < .0000000001) & (i > 100) ){ break }
+	})
  
 dev.new()
 plot( as.vector( y  ) , pch = 3) 
@@ -305,5 +309,21 @@ legend("topright", legend = c(num_hidden,paste("degree=",degree)), col = colors,
 
 
 
+5.11111111-5.111
+Cost
+
+wb$W
+
+wb <- init.wgt( 1 , 100 , xx) 
+
+  nnet1.fit( xx, y, 1 , wb$W , wb$B , 1000, 1, Activation = tanh, 
+	Output = Identity )
+
+dat =mlbench.spirals(75,1.5,.07)
+plot(dat)
 
 
+wb <- init.wgt( 1 , 10  , dat$x ) 
+
+nnet1.fit( dat$x , as.numeric(dat$classes) , 1 , wb$W , wb$B , 1000, 1,
+	Activation = tanh, Output = Sigmoid )

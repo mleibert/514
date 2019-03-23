@@ -266,6 +266,8 @@ gen.gaussian.data.2d=function(mean.cov.list){
 
 ############## **Step 2 implement 3 cost functions**
 
+one.hot <- function(Y){	return(unname( as.matrix( 
+	as.data.frame( t( model.matrix(~ as.factor(y) + 0) ) ) ) )) }
 
 
 cost.squared.error <- function(X,Y,b,w){
@@ -300,8 +302,8 @@ sigmoid <- function(x) 1 / (1 + exp(-x))
 Sigmoid <- function(X ,b,w){ ( 1 / ( 1 + exp( - Identity(X ,b,w) ) ) ) }
 
 cost.negll <- function(X,Y,b,w){
-	(-1 / length(as.vector(Y)))*sum( Y * log( Sigmoid(X ,b,w) ) + (1 - Y ) * 
-	log( 1 - Sigmoid(X ,b,w) )  ) }
+	(-1 / length(as.vector(Y)))*sum( Y * log( Sigmoid(X ,b,w) ) + 
+	(1 - Y ) *  log( 1 - Sigmoid(X ,b,w) )  ) }
 
 stable.softmax <- function( X, b ,w ){
 	Z <- ( b %*% matrix( rep(1, dim(X)[2] ) , nrow = 1) + w %*% X)
@@ -312,6 +314,20 @@ stable.softmax <- function( X, b ,w ){
 cost.cross.entropy <- function(X,Y,b,w){
 	H <- stable.softmax(X,b,w)
   	(-1/dim(X)[2]) * sum(  colSums( one.hot(Y) * log( H)) )}
+
+
+Cost <-  function( Y, Yhat, Outputs ){
+		M <- length( as.vector( Y ) )
+		if( Outputs == "Identity" ) {  return(   
+			( -1/ (2* M )) * norm( Yhat - Y ,"2" )^2  )
+		} else if ( Outputs == "Sigmoid" ) {  return( 
+			(-1 / M )*sum( ( Y * log( Yhat ) )  + 
+			( (1 - Y ) *  log( 1 - Yhat )  ))    ) 
+		} else { return( 
+			(-1/M) * sum(  colSums( one.hot(Y) * log( Yhat )) ) )}
+	}
+
+
 
 
 ######### **Step 4 Implement 3 hidden layer activation functions**
@@ -404,30 +420,70 @@ num.gradient <- function( X, Y, B,W,h=1e-8 , cost = cost.negll )  {
 	}}
 	return( list(dB = dB , dW =  dW) )} 
 
+require(beepr)
 
 
 bk.prop <-  function( X, Y, L, W, B,  Z , A,  Activation = relu, 
 		derivative = drelu  ){
 
 	m <- length( as.vector( Y ))
-	dz <- dw <- db <- list()
+	dZ <- dW <- dB <- list()
 	A[[length(A)+1]] <- X
 	A <- A[ c(length(A), 1:(length(A)-1) ) ]
 
  	ell <- L+1
-	dz[[ell]] <- A[[ell+1]] - Y
+	dZ[[ell]] <- A[[ell+1]] - Y
 	
 	while( ell >= 1 ){
 		
-		dw[[ell]] <- (1/m) * dz[[ell]] %*% t( A[[ell]] )  
-		db[[ell]] <- (1/m)*dz[[ell]] %*% rep(1, m )
+		dW[[ell]] <- (1/m) * dZ[[ell]] %*% t( A[[ell]] )  
+		dB[[ell]] <- (1/m)*dZ[[ell]] %*% rep(1, m )
 		
 		if( ell > 1) {
-			dz[[ell-1]] <- t( W[[ell]] ) %*%  dz[[ell]] *
+			dZ[[ell-1]] <- t( W[[ell]] ) %*%  dZ[[ell]] *
 			apply( Z[[ell-1]] , c(1,2), derivative ) }
 			ell <- ell - 1 } 
 
-	return( list(dz = dz , db= db , dw=dw ) ) }
+	return( list(dZ = dZ , dB= dB , dW=dW ) ) }
  
+
+####
+
+nnet1.fit <- function( X, Y, HL, W, B, Nsim , LR , Activation = relu, 
+		  Output = Identity ){
+	
+	Acts <- as.character(substitute(Activation ) )
+	Outpt <- as.character(substitute( Output ) )
+
+	if( Acts == "relu" ){ Derivative <- drelu 
+		} else if ( Acts == "tanh" ) {   Derivative <- dtanh 
+		} else { Derivative <- dsigmoid } 
+
+	C1 <- 0
+	M <- length(as.vector(Y))
+	ST <-system.time( 
+	for( i in 1:Nsim) {
+		FP  <- fwd.prop( X , HL , W, B, Activation, Output)
+		C2 <- Cost( Y , FP$A[[ HL+1 ]] ,  Outpt )
+ 		BP <- bk.prop(X, Y, HL , W, B, FP$Z, FP$A , Activation, 
+			Derivative )
+	
+		B.OLD <- B; W.OLD <- W
+	for( j in 1:(HL + 1)  ){
+		B[[j]] <- B[[j]] - LR * BP$dB[[j]]
+		W[[j]] <- W[[j]] - LR * BP$dW[[j]]
+		if( is.nan( FP$A[[ HL + 1 ]][1] ) == T ) {break}  }
+
+		if( C1 < C2 ){ i = i-1; LR <- LR *.5; B <- B.OLD; W <- W.OLD 
+			} else {	LR <- LR * 1.1  }
+		C1 <- C2
+	
+		LR <- ifelse( LR > 1.5 , 1.5, LR ) 
+		#if( i %in% seq(1, 100000, 10 ) ) {  print(Lr); print(C2)}
+		#plot( as.vector( y  ) , pch = 3)
+		#lines( as.vector( FP$A[[2]]  ) )
+		#if( ((C2 - C1) < .0000000001) & (i > 100) ){ break }
+	}) }
+
 
 
