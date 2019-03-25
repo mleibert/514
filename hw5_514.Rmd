@@ -222,7 +222,7 @@ x <- t(spirals$x )
 ```
 
 ```{r, cache= T}
-fit.sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
+#fit.sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
 ```
 
 
@@ -232,6 +232,36 @@ fit.sp2 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = relu, Ou
 
 ```{r, cache= T}
 fit.sp3 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); beep("coin")
+```
+
+```{r, cache= T}
+#fit.sp1 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
+```
+
+
+```{r, cache= T}
+fit.sp2 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); beep("coin")
+```
+
+```{r, cache= T}
+fit.sp3 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); beep("coin")
+```
+
+
+```{r}
+spfit.pred <- ifelse( fit.sp2$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred  ) ) * 1 ) / length(y)
+
+plot(spirals)
+spiralpred$classes   <- as.factor( spfit.pred + 1 )
+points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
+
+spfit.pred <- ifelse( fit.sp3$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred  ) ) * 1 ) / length(y)
+
+plot(spirals)
+spiralpred$classes   <- as.factor( spfit.pred + 1 )
+points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
 ```
 
 

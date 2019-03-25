@@ -351,17 +351,17 @@ y <- as.numeric(spirals$classes) - 1
 x <- t(spirals$x )
 
 
-wb <- init.wgt( 1 , 5 , x ) 
+ 
 
-spfit <- nnet1.fit( x, y , 1 , 5 ,  50000 ,  .5 ,  .5 ,
-	Activation = tanh, Output = Sigmoid ); beep("coin")
+spfit <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,
+	Activation = relu, Output = Sigmoid ); beep("coin")
 
  spfit.pred <- ifelse( spfit$yhat  > .5 , 1 , 0    )
 sum(( y  ==   as.numeric( spfit.pred  ) ) * 1 ) / length(y)
 
 plot(spirals)
-spirals$classes   <- as.factor( spfit$yhat + 1 )
-points( spiralpred$x , col = spirals$classes    , pch = 3 )
+spiralpred$classes   <- as.factor( spfit.pred + 1 )
+points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
  
 
 
