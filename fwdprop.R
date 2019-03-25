@@ -152,13 +152,22 @@ cost.negll( a[[1]] , y  , weightz$b2, weightz$w2 )
 # softmax output activation using data for 3 class mixture provided below
  
 
-aa <- fwd.prop( xx , 4, wb$W, wb$B, activation = tanh, output = Sigmoid )
+## 
+ 
+
+setwd("G:\\math\\514")
+source("hw5_514.r")
+c(xx,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
+wb <- init.wgt( 1 , 2 , xx) 
+
+
+aa <- fwd.prop( xx , 1, wb$W, wb$B, activation = tanh, output = Sigmoid )
 
  
-bk.prop( xx, y, 4, wb$W, wb$B , Activation = tanh, derivative = dtanh,
-		  Output = Sigmoid )$dw
+bk.prop( xx, y, 1, wb$W, wb$B , aa$Z, aa$A, 
+	Activation = tanh, derivative = dtanh  )
 
-num.gradient( xx,y, 4 , wb$B,wb$W,h=1e-8 , tanh, Sigmoid   ) 
+num.gradient( xx,y, 4 , wb$B ,wb$W , h=1e-8    ) 
  
 
 xa <-  aa$A
@@ -295,8 +304,13 @@ lines( as.vector( FP$A[[2]]  ) )
 aaaaa <- rep(1, 1000000 )
 
 
-  c(X,Y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
+  c(x,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
  
+
+
+nnet1.fit( x, y, 1 , 2 , 150000, 1, Activation = tanh, Output = Identity )
+ 
+
   np=length(X)
  
 x.set=c(X)
@@ -309,7 +323,7 @@ legend("topright", legend = c(num_hidden,paste("degree=",degree)), col = colors,
 
 
 
-5.11111111-5.111
+ 
 Cost
 
 wb$W
@@ -319,11 +333,140 @@ wb <- init.wgt( 1 , 100 , xx)
   nnet1.fit( xx, y, 1 , wb$W , wb$B , 1000, 1, Activation = tanh, 
 	Output = Identity )
 
-dat =mlbench.spirals(75,1.5,.07)
-plot(dat)
+wb <- init.wgt( 1 , 10  , x ) 
 
-
-wb <- init.wgt( 1 , 10  , dat$x ) 
-
-nnet1.fit( dat$x , as.numeric(dat$classes) , 1 , wb$W , wb$B , 1000, 1,
+nnet1.fit( x, y , 1 , wb$W , wb$B , 50000, 1,  .1 ,
 	Activation = tanh, Output = Sigmoid )
+
+
+## 
+ 
+
+setwd("G:\\math\\514")
+source("hw5_514.r")
+
+spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
+
+y <- as.numeric(spirals$classes) - 1
+x <- t(spirals$x )
+
+
+wb <- init.wgt( 1 , 5 , x ) 
+
+spfit <- nnet1.fit( x, y , 1 , 5 ,  50000 ,  .5 ,  .5 ,
+	Activation = tanh, Output = Sigmoid ); beep("coin")
+
+ spfit.pred <- ifelse( spfit$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred  ) ) * 1 ) / length(y)
+
+plot(spirals)
+spirals$classes   <- as.factor( spfit$yhat + 1 )
+points( spiralpred$x , col = spirals$classes    , pch = 3 )
+ 
+
+
+
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+
+
+setwd("G:\\math\\514")
+source("hw5_514.r")
+  
+n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
+n2=40; mu2=c(1.5,1.5);cov2=diag(.1,2)
+n3=30; mu3=c(1.5,0);  cov3=diag(.1,2)
+mean.cov.list=list()
+mean.cov.list[[1]]=list(n=50, mu=c(.5,.5),  cov=diag(.2,2))
+mean.cov.list[[2]]=list(n=40, mu=c(1.5,1.5),cov=diag(.1,2))
+mean.cov.list[[3]]=list(n=30, mu=c(1.5,0),  cov=diag(.1,2))
+
+#c(X,y) %<-% generate.gaussian.data.class3(n1,mu1,cov1,n2,mu2,cov2,n3,mu3,cov3)
+c(x,y) %<-% gen.gaussian.data.2d(mean.cov.list)
+plot(x[1,],x[2,],pch=1,col=y+1,lwd=2,cex=1)
+ 
+hl <- 1
+wb <- init.wgt( hl , 2 , x )
+
+fp <- fwd.prop( x , hl, wb$W, wb$B, activation = tanh, output = Sigmoid )
+bp <- bk.prop( x, y, hl, wb$W, wb$B , fp$Z , fp$A, Activation = tanh, derivative = dtanh) 
+
+bp$dB[[ hl + 1 ]]; bp$dW[[ hl + 1   ]]
+num.gradient( fp$A[[ hl  ]] , y ,  ( wb$B[[hl +1]] ) , wb$W[[hl +1]] , cost =   cost.negll )
+
+c(x,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
+
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+
+
+setwd("G:\\math\\514")
+source("hw5_514.r")
+ c(x,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
+
+fit1 <- nnet1.fit( x, y, 1 , 2 , 150000, 1, Activation = tanh,
+	 Output = Identity );  beep("coin")
+
+
+fit2 <- nnet1.fit( x, y, 1 , 5 , 150000, 1, Activation = tanh,
+	 Output = Identity )
+
+fit3 <- nnet1.fit( x, y, 1 , 100 , 150000, 1, Activation = tanh,
+	 Output = Identity ); beep("mario")
+
+plot( as.numeric(y))
+lines(fit3$yhat)
+
+fitz <- nnet1.fit( x, y, 1 , 100, Nsim = 30000 , 1, Activation = tanh,
+	 Output = Identity );  
+ 
+fitz$st 
+plot(as.vector(y))
+lines(as.vector(fitz$yhat ))
+names(fitz)
+
+#####
+xx <- x
+Hl <- 1
+wb <- init.wgt( 1 , 2 , xx) 
+Lr <- 1.5
+w0 <- wb$W
+b0 <- wb$B
+c2 <- c1 <- 0
+FP <- rep(NA, Nsim)
+ 
+
+for( i in 1:3000) {
+	Fp  <- fwd.prop( xx , Hl , w0, b0, tanh, Identity)
+	 c2 <- (1/( 2 * length(as.vector( y ) ))) * 
+		( norm( Fp$A[[2]] - y  ,"2")^2  )
+	# c2 <- Cost( y , Fp$A[[ Hl+1 ]] ,  "Identity" )
+	Bp <- bk.prop(xx,y,Hl ,w0, b0, Fp$Z, Fp$A , tanh, dtanh)
+	
+	BOld <- b0; WOld <- w0
+for( j in 1:(Hl + 1)  ){
+	b0[[j]] <- b0[[j]] - Lr * Bp$dB[[j]]
+	w0[[j]] <- w0[[j]] - Lr * Bp$dW[[j]]
+	if( is.nan( Fp$A[[2]][1] ) == T ) {break}  }
+
+	if( c1 < c2 ){ i = i-1; Lr <- Lr *.5; b0 <- BOld; w0 <- WOld  } else {
+		Lr <- Lr * 1.1  }
+	 c1 <- c2
+	
+	Lr <- ifelse( Lr > 1.5 , 1.5, Lr ) 
+	if( i %in% seq(1, 100000, 10 ) ) {  print(Lr); print(c2)}
+	plot( as.vector( y  ) , pch = 3)
+	lines( as.vector( Fp$A[[2]]  ) )
+ 	} 
+
+ 
+
+

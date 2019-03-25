@@ -2,8 +2,6 @@
 title: "h5_514"
 output:
   pdf_document: default
-  html_document: default
-  word_document: default
 ---
 
 **Homework 5 Problem Statement**
@@ -42,12 +40,14 @@ Other important functions for this homework will be:
 Use the mlbench library to generate a spiral data set for binary classification. 
 
 ```{r}
+setwd("G:\\math\\514")
 source('hw5_514.R')
 library(mlbench)
 data=mlbench.spirals(75,1.5,.07)
 plot(data)
 X=t(data$x)
 Y=matrix(as.integer(data$classes)-1,nrow=1)
+ 
 ```
 
 
@@ -62,6 +62,7 @@ Y=matrix(as.integer(data$classes)-1,nrow=1)
 print.fun('cost.squared.error')
 print.fun('cost.negll')
 print.fun('cost.cross.entropy')
+
 ```
 
 **Step 3 Implement 3 output activation functions**
@@ -74,6 +75,7 @@ print.fun('cost.cross.entropy')
 print.fun('identity')
 print.fun('sigmoid')
 print.fun('stable.softmax')
+
 ```
 
 
@@ -162,19 +164,41 @@ For our runs we used 150,000 iterations with a learning rate of .1. Feel free to
 
 ```{r}
 
-  c(X,Y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
- 
+  c(x,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
+  
   np=length(X)
  
 x.set=c(X)
 y.set=c(Y)
 degree=15  
 lm.fit = lm(y ~ poly(x,degree,raw=FALSE), data=data.frame(y=y.set,x=x.set))
-y = predict.lm(lm.fit,data.frame(x=xgrid))
-points(xgrid,y,type="l",col="black",lwd=2)
-legend("topright", legend = c(num_hidden,paste("degree=",degree)), col = colors,lwd=2 )
-
+#y = predict.lm(lm.fit,data.frame(x=xgrid))
+#points(xgrid,y,type="l",col="black",lwd=2)
+#legend("topright", legend = c(num_hidden,paste("degree=",degree)), col = colors,lwd=2 )
+ 
 ```
+
+
+```{r, cache = T}
+fit.LG1 <- nnet1.fit( x, y, 1 , 2 , 150000, 1.5, 1.5, Activation = tanh, Output = Identity );  beep("coin") 
+plot(as.vector(y))
+lines(as.vector(fit.LG1$yhat ))
+```
+
+
+```{r, cache = T}
+fit.LG2 <- nnet1.fit( x, y, 1 , 5 , 30000, 1.5, 1.5, Activation = tanh, Output = Identity );  beep("coin") 
+plot(as.vector(y))
+lines(as.vector(fit.LG2$yhat ))
+```
+
+
+```{r, cache = T}
+fit.LG3 <- nnet1.fit( x, y, 1 , 100 , 60000, 1.5, 1.5, Activation = tanh, Output = Identity );  beep("coin") 
+plot(as.vector(y))
+lines(as.vector(fit.LG2$yhat ))
+```
+
 
 
 **Step 8 Train binary classifier using spiral data**
@@ -189,22 +213,25 @@ Train a neural net to predict binary classes for the mlbench.spirals data introd
 
 ```{r}
 
-data=mlbench.spirals(75,1.5,.07)
-X=t(data$x)
-Y=matrix(as.integer(data$classes)-1,nrow=1)
-X0=X
-Y0=Y
-n = nrow(X)  # number of input nodes
-M = ncol(X)  # number of samples
+spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
 
-data$color=as.integer(data$classes)+2
+y <- as.numeric(spirals$classes) - 1
+x <- t(spirals$x )
+
 
 ```
-```{r}
+
+```{r, cache= T}
+fit.sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
+```
 
 
+```{r, cache= T}
+fit.sp2 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); beep("coin")
+```
 
-
+```{r, cache= T}
+fit.sp3 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); beep("coin")
 ```
 
 
@@ -220,9 +247,9 @@ Train a neural network on the 60k MNIST training data and measure performance on
 
 ```{r}
 
-mnist = list(train=load_image_file("train-images-idx3-ubyte"),test=load_image_file("t10k-images-idx3-ubyte"))
-mnist[["train"]]$y = load_label_file("train-labels-idx1-ubyte")
-mnist[["test"]]$y = load_label_file("t10k-labels-idx1-ubyte")  
+#mnist = list(train=load_image_file("train-images-idx3-ubyte"),test=load_image_file("t10k-images-idx3-ubyte"))
+#mnist[["train"]]$y = load_label_file("train-labels-idx1-ubyte")
+#mnist[["test"]]$y = load_label_file("t10k-labels-idx1-ubyte")  
 
 
 
@@ -261,13 +288,13 @@ Y=matrix(as.integer(data$classes)-1,nrow=1)
 
 
 
-```{r}
+```{r, eval=F}
 
 
 
-mnist = list(train=load_image_file("train-images-idx3-ubyte"),test=load_image_file("t10k-images-idx3-ubyte"))
-mnist[["train"]]$y = load_label_file("train-labels-idx1-ubyte")
-mnist[["test"]]$y = load_label_file("t10k-labels-idx1-ubyte")  
+#mnist = list(train=load_image_file("train-images-idx3-ubyte"),test=load_image_file("t10k-images-idx3-ubyte"))
+#mnist[["train"]]$y = load_label_file("train-labels-idx1-ubyte")
+#mnist[["test"]]$y = load_label_file("t10k-labels-idx1-ubyte")  
 
 
 train_set=sample(1:dim(mnist$train$x)[1], size = 60000)
