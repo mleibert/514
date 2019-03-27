@@ -195,8 +195,10 @@ lines(as.vector(fit.LG2$yhat ))
 
 ```{r, cache = T}
 fit.LG3 <- nnet1.fit( x, y, 1 , 100 , 60000, 1.5, 1.5, Activation = tanh, Output = Identity );  beep("coin") 
+```
+```{r}
 plot(as.vector(y))
-lines(as.vector(fit.LG2$yhat ))
+lines(as.vector(fit.LG3$yhat ))
 ```
 
 
@@ -222,16 +224,16 @@ x <- t(spirals$x )
 ```
 
 ```{r, cache= T}
-#fit.sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
+#fit.Sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
 ```
 
 
 ```{r, cache= T}
-fit.sp2 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); beep("coin")
+fit.Sp2 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); beep("coin")
 ```
 
 ```{r, cache= T}
-fit.sp3 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); beep("coin")
+fit.Sp3 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); beep("coin")
 ```
 
 ```{r, cache= T}
