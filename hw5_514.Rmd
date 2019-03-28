@@ -180,21 +180,21 @@ lm.fit = lm(y ~ poly(x,degree,raw=FALSE), data=data.frame(y=y.set,x=x.set))
 
 
 ```{r, cache = T}
-fit.LG1 <- nnet1.fit( x, y, 1 , 2 , 150000, 1.5, 1.5, Activation = tanh, Output = Identity );  beep("coin") 
+fit.LG1 <- nnet1.fit( x, y, 1 , 2 , 150000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
 plot(as.vector(y))
 lines(as.vector(fit.LG1$yhat ))
 ```
 
 
 ```{r, cache = T}
-fit.LG2 <- nnet1.fit( x, y, 1 , 5 , 30000, 1.5, 1.5, Activation = tanh, Output = Identity );  beep("coin") 
+fit.LG2 <- nnet1.fit( x, y, 1 , 5 , 30000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
 plot(as.vector(y))
 lines(as.vector(fit.LG2$yhat ))
 ```
 
 
 ```{r, cache = T}
-fit.LG3 <- nnet1.fit( x, y, 1 , 100 , 60000, 1.5, 1.5, Activation = tanh, Output = Identity );  beep("coin") 
+fit.LG3 <- nnet1.fit( x, y, 1 , 100 , 60000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
 ```
 ```{r}
 plot(as.vector(y))
@@ -224,50 +224,71 @@ x <- t(spirals$x )
 ```
 
 ```{r, cache= T}
-#fit.Sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
+#fit.Sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); #beep("coin")
 ```
 
 
 ```{r, cache= T}
-fit.Sp2 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); beep("coin")
+fit.sp2 <- nnet1.fit( x, y , 1 , 5 ,  200000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); #beep("coin")
 ```
 
 ```{r, cache= T}
-fit.Sp3 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); beep("coin")
+fit.sp3 <- nnet1.fit( x, y , 1 , 5 ,  200000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
 ```
 
 ```{r, cache= T}
-#fit.sp1 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); beep("coin")
+#fit.sp4 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); #beep("coin")
 ```
 
 
 ```{r, cache= T}
-fit.sp2 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); beep("coin")
+fit.sp5 <- nnet1.fit( x, y , 1 , 100 ,  200000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); #beep("coin")
 ```
 
 ```{r, cache= T}
-fit.sp3 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); beep("coin")
+fit.sp6 <- nnet1.fit( x, y , 1 , 100 ,  200000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
 ```
 
 
 ```{r}
-spfit.pred <- ifelse( fit.sp2$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred  ) ) * 1 ) / length(y)
+spfit.pred2 <- ifelse( fit.sp2$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred2  ) ) * 1 ) / length(y)
 
-plot(spirals)
-spiralpred$classes   <- as.factor( spfit.pred + 1 )
-points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
+spfit.pred3 <- ifelse( fit.sp3$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred3  ) ) * 1 ) / length(y)
 
-spfit.pred <- ifelse( fit.sp3$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred  ) ) * 1 ) / length(y)
-
-plot(spirals)
-spiralpred$classes   <- as.factor( spfit.pred + 1 )
-points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
 ```
 
 
 ```{r}
+spfit.pred5 <- ifelse( fit.sp5$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred5  ) ) * 1 ) / length(y)
+
+spfit.pred6 <- ifelse( fit.sp6$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred6  ) ) * 1 ) / length(y)
+
+```
+
+```{r}
+
+fit.sp5 <- nnet1.fit( x, y , 3 , c(25,25) ,  200000 ,  1.5 ,   	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
+
+```
+
+```{r}
+par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
+plot(spirals)
+spiralpred$classes   <- as.factor( spfit.pred2 + 1 )
+points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
+plot(spirals)
+spiralpred$classes   <- as.factor( spfit.pred3 + 1 )
+points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
+plot(spirals)
+spiralpred$classes   <- as.factor( spfit.pred5 + 1 )
+points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
+plot(spirals)
+spiralpred$classes   <- as.factor( spfit.pred6 + 1 )
+points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
 
 ```
 
@@ -277,16 +298,24 @@ Train a neural network on the 60k MNIST training data and measure performance on
 
 -Plot in sample and out of sample performance history of the model
 
-```{r}
-
-#mnist = list(train=load_image_file("train-images-idx3-ubyte"),test=load_image_file("t10k-images-idx3-ubyte"))
-#mnist[["train"]]$y = load_label_file("train-labels-idx1-ubyte")
-#mnist[["test"]]$y = load_label_file("t10k-labels-idx1-ubyte")  
-
-
-
-
+```{r, cache = T}
+mtrain <- read.csv("G:\\math\\mnist_train.csv" , header = F)
+x <- unname( mtrain[,-1] )
+x <- t(x)
+x <- x / 255
+y <-  as.matrix( unname(  mtrain[,1] ))
 ```
+
+```{r, cache = T}
+mnist.fit <- nnet1.fit( x, y, 1, 30, 50 ,  MaxLR = .5,
+                 Activation = relu,   Output = stable.softmax ) 
+```
+
+```{r}
+yhat.mnist <- ( apply( mnist.fit$yhat , 2 , function( M )  which( M == max(M) ) )  - 1)
+sum( 1 * (yhat.mnist == y ) ) / length(as.vector(y))
+```
+
 
 **Step 10 Implement a mini-batch gradient descent training algorithm**
 

@@ -353,7 +353,7 @@ x <- t(spirals$x )
 
  
 
-spfit <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,
+spfit <- nnet1.fit( x, y , 1 , 5 ,  1 ,  .5 ,  .5 ,
 	Activation = relu, Output = Sigmoid ); beep("coin")
 
  spfit.pred <- ifelse( spfit$yhat  > .5 , 1 , 0    )
@@ -436,20 +436,21 @@ names(fitz)
 #####
 xx <- x
 Hl <- 1
-wb <- init.wgt( 1 , 2 , xx) 
-Lr <- 1.5
+wb <- init.wgt( 1 ,50 , x , y ,output = stable.softmax) 
+Lr <- .5
 w0 <- wb$W
 b0 <- wb$B
 c2 <- c1 <- 0
-FP <- rep(NA, Nsim)
  
+-1/60000  * sum( colSums( one.hot(y) *   log( Fp$A[[2]]  ) ) ) 
+
+dim( one.hot(y) )
+dim(   ( Fp$Z[[2]]  ) )
 
 for( i in 1:3000) {
-	Fp  <- fwd.prop( xx , Hl , w0, b0, tanh, Identity)
-	 c2 <- (1/( 2 * length(as.vector( y ) ))) * 
-		( norm( Fp$A[[2]] - y  ,"2")^2  )
-	# c2 <- Cost( y , Fp$A[[ Hl+1 ]] ,  "Identity" )
-	Bp <- bk.prop(xx,y,Hl ,w0, b0, Fp$Z, Fp$A , tanh, dtanh)
+	Fp  <- fwd.prop( x , Hl , w0, b0, relu, stable.softmax)
+	c2 <- Cost( y , Fp$A[[ Hl+1 ]] ,  "stable.softmax" )
+	Bp <- bk.prop(x,y,Hl ,w0, b0, Fp$Z, Fp$A , relu, stable.softmax)
 	
 	BOld <- b0; WOld <- w0
 for( j in 1:(Hl + 1)  ){
@@ -462,11 +463,31 @@ for( j in 1:(Hl + 1)  ){
 	 c1 <- c2
 	
 	Lr <- ifelse( Lr > 1.5 , 1.5, Lr ) 
-	if( i %in% seq(1, 100000, 10 ) ) {  print(Lr); print(c2)}
-	plot( as.vector( y  ) , pch = 3)
-	lines( as.vector( Fp$A[[2]]  ) )
+
  	} 
 
  
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+########################################################################
+########################################################################
 
+
+setwd("G:\\math\\514")
+source("hw5_514.r")
+
+nnet1.fit
+mtrain <- read.csv("G:\\math\\mnist_train.csv" , header = F)
+x <- unname( mtrain[,-1] )
+x <- t(x)
+x <- x / 255
+y <-  as.matrix( unname(  mtrain[,1] ))
+
+
+ fit <- nnet1.fit( x, y, 1, 30, 50 ,  MaxLR = .5,
+                 Activation = relu,   Output = stable.softmax ) 
+
+ init.wgt( 1, 30 , x, y , "stable.softmax") 
 

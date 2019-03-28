@@ -350,12 +350,12 @@ dtanh <- function(X){1-tanh(X)^2 }
 
 dsigmoid <- function(X){ sigmoid(X) * (1-sigmoid(X) ) }
  
-
-
-
-init.wgt <- function( layers , nodes , X , d = .01 ){
+ 
+init.wgt <- function( layers , nodes , X, Y, d = .01 ){
 	W <- B <- list()
-	node <- c( dim(X)[1] , nodes, 1 )
+	LN <- ifelse( length(as.vector(  unique( y ) ) ) < 3 , 
+		1 ,	length(as.vector(  unique( y ) ) ) )
+	node <- c( dim(X)[1] , nodes, LN )
 	for( i in 1:(layers+1) ){
 		W[[i]] <- d*matrix(rnorm(node[i]*node[i+1],.1),
 				node[i+1],node[i ])
@@ -461,15 +461,16 @@ bk.prop <-  function( X, Y, L, W, B,  Z , A,  Activation = relu,
 
 ####
 
-nnet1.fit <- function( X, Y, HL, nodes, Nsim , LR , MaxLR = 1,
+nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
 		 Activation = relu,   Output = Identity ){
 	
-	WB <- init.wgt( HL, nodes , X) 
-	W <- WB$W; B <- WB$B
-
+	LR <- MaxLR
+	
 	Acts <- as.character(substitute(Activation ) )
 	Outpt <- as.character(substitute( Output ) )
  
+	WB <- init.wgt( HL, nodes , X, Y ) 
+	W <- WB$W; B <- WB$B
 
 	if( Acts == "relu" ){ Derivative <- drelu 
 		} else if ( Acts == "tanh" ) {   Derivative <- dtanh 
@@ -477,13 +478,14 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim , LR , MaxLR = 1,
 
 	C1 <- 0
 	M <- length(as.vector(Y))
+ 
 	ST <-system.time( 
 	for( i in 1:Nsim) {
 		FP  <- fwd.prop( X , HL , W, B, Activation, Output)
 		 C2 <- Cost( Y , FP$A[[ HL+1 ]] ,  Outpt )
  
  		BP <-  bk.prop(X, Y, HL , W, B, FP$Z, FP$A , Activation, 
-			Derivative ) 
+			Output ) 
  
 		B.OLD <- B; W.OLD <- W
 	for( j in 1:(HL + 1)  ){
@@ -504,3 +506,38 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim , LR , MaxLR = 1,
 nnet1.fit.batch <- function( X, Y, HL, nodes, Nsim , LR , MaxLR = 1,
 		 Activation = relu,   Output = Identity ){
 }
+
+
+
+bk.prop <-  function( X, Y, L, W, B,  Z , A,  Activation = relu, 
+		Output = Sigmoid ){
+
+	Act  <- as.character(substitute( Act ) )
+
+	if( Act == "relu" ){ derivative <- drelu 
+		} else if ( Act== "tanh" ) {   derivative <- dtanh 
+		} else { derivative <- dsigmoid }	
+	
+	m <- length( as.vector( Y ))
+	dZ <- dW <- dB <- list()
+	A[[length(A)+1]] <- X
+	A <- A[ c(length(A), 1:(length(A)-1) ) ]
+
+ 	ell <- L+1
+	if(  length(as.vector(  unique( y ) ) ) > 2  ){
+		dZ[[ell]] <- A[[ell+1]]- one.hot(Y) } else {
+		dZ[[ell]] <- A[[ell+1]] - Y }
+	
+	while( ell >= 1 ){
+		
+		dW[[ell]] <- (1/m) * dZ[[ell]] %*% t( A[[ell]] )  
+		dB[[ell]] <- (1/m)*dZ[[ell]] %*% rep(1, m )
+		
+		if( ell > 1) {
+			dZ[[ell-1]] <- t( W[[ell]] ) %*%  dZ[[ell]] *
+			apply( Z[[ell-1]] , c(1,2), derivative ) }
+			ell <- ell - 1 } 
+
+	return( list(dZ = dZ , dB= dB , dW=dW ) ) }
+ 
+
