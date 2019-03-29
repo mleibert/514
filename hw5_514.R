@@ -476,13 +476,13 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
 		} else if ( Acts == "tanh" ) {   Derivative <- dtanh 
 		} else { Derivative <- dsigmoid } 
 
-	C1 <- 0
+	C1 <- 0; Costs <- list()
 	M <- length(as.vector(Y))
  
 	ST <-system.time( 
 	for( i in 1:Nsim) {
 		FP  <- fwd.prop( X , HL , W, B, Activation, Output)
-		 C2 <- Cost( Y , FP$A[[ HL+1 ]] ,  Outpt )
+		C2 <- Costs[[i]] <- Cost( Y , FP$A[[ HL+1 ]] ,  Outpt )
  
  		BP <-  bk.prop(X, Y, HL , W, B, FP$Z, FP$A , Activation, 
 			Output ) 

@@ -1,0 +1,438 @@
+---
+title: "hw4_514_solution"
+output: html_document
+---
+
+
+**Homework 4 Problem Statement**
+
+Implement gradient descent for softmax regression using the cross-entropy (CE) cost function.  Train models using synthetic data as well as the MNIST handwritten digit data.  
+
+You will complete the following functions as part of this homework and some additional helper functions: 
+
+- one.hot : Takes a Y vector of integers and converts it to one hot encoded matrix. Our implementation stores one-hot vectors as columns
+- bk.prop: Computes the gradient of the cost function wrt to adjustable parameters b and w. Your solution should be "vectorized" and use vector/matrix operations to compute the gradient for the entire dataset on each call. 
+- fwd.prop: Computes model outputs (softmax). fwd.prop should be vectorized
+- softmax.fit: Implements a simple gradient descent loop given a fixed learning rate and the number of iterations
+- cost: Compute Cross-Entropy cost for entire dataset.
+
+
+**Step 1 Generate data **
+
+Use the code chunk below to to create a dataset.  This chunk creates a data set that is a mixture of 3 classes of 2d normals with different means and variances. Use the plot provided to visualize the data.
+
+```{r}
+source('hw4_514_solution.R')
+library(MASS)
+library(zeallot)
+n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
+n2=40; mu2=c(1.5,1.5);cov2=diag(.1,2)
+n3=30; mu3=c(1.5,0);  cov3=diag(.1,2)
+mean.cov.list=list()
+mean.cov.list[[1]]=list(n=50, mu=c(.5,.5),  cov=diag(.2,2))
+mean.cov.list[[2]]=list(n=40, mu=c(1.5,1.5),cov=diag(.1,2))
+mean.cov.list[[3]]=list(n=30, mu=c(1.5,0),  cov=diag(.1,2))
+
+#c(X,y) %<-% generate.gaussian.data.class3(n1,mu1,cov1,n2,mu2,cov2,n3,mu3,cov3)
+c(X,y) %<-% gen.gaussian.data.2d(mean.cov.list)
+plot(X[1,],X[2,],pch=1,col=y+1,lwd=2,cex=1)
+
+```
+
+
+**Step 2 Implement one hot encoding function **
+
+Implement a function called one.hot that takes a vector of integers and returns the corresponding one-hot encode matrix
+
+```{r}
+
+Y=one.hot(t(y))
+  
+```
+
+
+**Step 3 Cost Function and Model Output Function**
+
+- Use latex to document your cross-entropy cost function
+
+- Implement (complete function) the cost function code. The cost function takes as input the entire X and Y datasets and b,w parameters and should be vectorized. Make sure to divide your total cost by the number of samples.  
+
+- Use latex to document the model output probabilites (softmax)
+
+- Implement the model output function, called fwd.prop.  fwd.prop takes the full X dataset, along with model parameters and computes output probabilities for every sample. Your code should be vectorized.
+$$\mathbf{z}=\mathbf{b}+WX$$
+$$(S(\mathbf{z}^i))_j=  \frac{e^{\mathbf{z_j^i}}}{\sum_{k=1}^{K}e^{\mathbf{z^i_k}}}$$
+$$p_k^{(i)}=(S(\mathbf{z}^i))_k$$
+$$C=\sum_{i=1}^m C_i=-\frac{1}{m} \sum_{1=1}^m \sum_{k=1}^K t_k^{(i)} \ln p_k^{(i)}$$
+
+
+
+```{r}
+print.fun('fwd.prop');
+print.fun('cost');
+
+```
+
+**Step 4 Gradient Calculations with Numerical Check **
+
+Use latex to document the cross-entropy cost calculation. Implement (complete function) the code to return the gradients in a function called bk.prop. Your gradient code should be vectorized. Make sure to divide your total gradient by the number of samples.
+
+Check your gradient functions by comparing with a numerical gradient calculation.
+
+$$\frac{\partial C}{\partial b}=\frac{1}{m} (S(X)-T)\begin{bmatrix}
+1\\ 
+\vdots\\ 
+1
+\end{bmatrix}$$
+$$\begin{aligned}
+\sum_{i=1}^{m} \frac{\partial C^i}{\partial W} 
+&=  \sum_{i=1}^{m} \frac{\partial C}{\partial \mathbf{x}^{(i)}} (\mathbf{x}^{(i)})^T \\
+&=\frac{\partial C}{\partial Z} X^T \\
+&= (S(X)-T)X^T \\
+\frac{\partial C}{\partial W}&=\frac{1}{m}(S(X)-T)X^T \end{aligned}$$
+
+```{r}
+print.fun('num.gradient');
+print.fun('bk.prop');
+
+b=rnorm(nrow(Y),0,.1)
+w=matrix(rnorm(nrow(X)*nrow(Y),0,.1),nrow=nrow(Y))
+  
+  
+fp=fwd.prop(X,b,w)
+c(db,dw) %<-% bk.prop(X,Y,fp)
+ng=num.gradient(cost.bw,X,Y,b,w)
+
+(ng$db-db)/db
+(ng$dw-dw)/dw
+
+```
+
+
+**Step 4 Optimizer/Gradient Descent**
+
+Next code the softmax.fit function. Arguments include a learning rate parameter and the number of iterations. This function should return a complete list of generated data:
+- history of (b,w)
+- history of cost
+- history of gradient norm
+- history of timestamps (Sys.time()) 
+- Use print fun to display code in softmax.fit
+
+Implement a function called predict that will take as input b,w, and X and return predictions. It should return the class value with the highest predicted probability as the prediction.
+
+
+```{r}
+print.fun('softmax.fit')
+
+```
+
+
+**Step 5 Use softmax regression on synthetic data **
+
+- Use the softmax.fit to train a model on synthetic data from step 1
+- Use the predict function to test model accuracy on out-of-sample data
+- Plot the decision boundary of the model. Do this by creating a grid of points covering the synthetic and coloring the grid points using the model predicted class. Overlay the data points, colored by their predict values, on top of the grid. 
+
+```{r}
+  n = nrow(X)  # number of input nodes
+  n.out = nrow(Y)
+  M = ncol(X)  # number of samples
+
+  b0 = runif(n.out,-.1,.1)
+  w0 = matrix(rnorm(n*n.out,0,.1),nrow=n.out,ncol=n)
+
+  lr=.2
+  history = softmax.fit(X,Y,lr,max.its=2000,b0,w0)
+  c(cost_final,b,w,g,ts) %<-% history[[length(history)]]
+  
+  #test out of sample
+  #c(testX,testY) %<-% generate.gaussian.data.class3(n1,mu1,cov1,n2,mu2,cov2,n3,mu3,cov3)
+  c(testX,testY) %<-% gen.gaussian.data.2d(mean.cov.list)
+  test_pred=predict(testX,b,w)
+  table(test_pred,testY)
+  table(test_pred==testY)/length(testY)
+```
+
+```{r}
+  grid=expand.grid(X1 = seq(min(X[1,])-.25,max(X[1,])+.25,length.out = 51),
+                   X2 = seq(min(X[2,])-.25,max(X[2,])+.25,length.out = 51))
+  grid=t(data.matrix(grid))
+  pgrid=predict(grid,b,w)
+  col.map=c(rgb(1,0,0,alpha=.2),rgb(0,1,0,alpha=.2),rgb(0,0,1,alpha=.2))
+  plot(grid[1,],grid[2,],pch=19,col=col.map[pgrid],cex=.5)
+  points(testX[1,],testX[2,],pch=1,col=apply(Y,2,which.max)+1,lwd=2,cex=1)
+  
+  errors=test_pred!=testY
+  wrong=which(errors)
+  for(i in wrong) points(testX[1,i],testX[2,i],lwd=2,col="orange",cex=2)
+
+```
+
+**Step 6 change synthetic data to consider a 5 class problem**
+
+- Re-do step 5 using a synthetic data set with 5 classes
+
+```{r}
+n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
+n2=40; mu2=c(1.5,2.); cov2=diag(.1,2)
+n3=30; mu3=c(1.5,-1); cov3=diag(.1,2)
+n4=30; mu4=c(2,0);    cov4=diag(.1,2)
+n5=30; mu5=c(2,1);    cov5=diag(.1,2)
+
+mean.cov.list=list()
+mean.cov.list[[1]]=list(n=n1, mu=mu1,  cov=cov1)
+mean.cov.list[[2]]=list(n=n2, mu=mu2,  cov=cov2)
+mean.cov.list[[3]]=list(n=n3, mu=mu3,  cov=cov3)
+mean.cov.list[[4]]=list(n=n4, mu=mu4,  cov=cov4)
+mean.cov.list[[5]]=list(n=n5, mu=mu5,  cov=cov5)
+
+#c(X,y) %<-% generate.gaussian.data.class3(n1,mu1,cov1,n2,mu2,cov2,n3,mu3,cov3)
+c(X,y) %<-% gen.gaussian.data.2d(mean.cov.list)
+Y=one.hot(t(y))
+
+  n = nrow(X)  # number of input nodes
+  n.out = nrow(Y)
+  M = ncol(X)  # number of samples
+
+  b0 = runif(n.out,-.1,.1)
+  w0 = matrix(rnorm(n*n.out,0,.1),nrow=n.out,ncol=n)
+
+  lr=.2
+  history = softmax.fit(X,Y,lr,max.its=2000,b0,w0)
+  c(cost_final,b,w,g,ts) %<-% history[[length(history)]]
+  
+  #test out of sample
+  #c(testX,testY) %<-% generate.gaussian.data.class3(n1,mu1,cov1,n2,mu2,cov2,n3,mu3,cov3)
+  c(testX,testY) %<-% gen.gaussian.data.2d(mean.cov.list)
+  test_pred=predict(testX,b,w)
+  table(test_pred,testY)
+  table(test_pred==testY)/length(testY)
+  
+  grid=expand.grid(X1 = seq(min(X[1,])-.25,max(X[1,])+.25,length.out = 51),
+                   X2 = seq(min(X[2,])-.25,max(X[2,])+.25,length.out = 51))
+  grid=t(data.matrix(grid))
+  pgrid=predict(grid,b,w)
+  col.map=c(rgb(1,0,0,alpha=.2),rgb(0,1,0,alpha=.2),rgb(0,0,1,alpha=.2),rgb(1,.5,.5,alpha=.2),rgb(1,0,1,alpha=.2))
+  plot(grid[1,],grid[2,],pch=19,col=col.map[pgrid],cex=.5)
+  col.map=c(rgb(1,0,0),rgb(0,1,0),rgb(0,0,1),rgb(1,.5,.5),rgb(1,0,1))
+  points(testX[1,],testX[2,],pch=1,col=col.map[y],lwd=2,cex=1)
+  
+  errors=test_pred!=testY
+  wrong=which(errors)
+  
+  for(i in wrong) points(testX[1,i],testX[2,i],lwd=2,col="orange",cex=2)
+
+```
+
+**Step 7 Download and load MNIST data**
+
+Using the following URLs download the MNIST data (manually, or you could use the download code included in the hw4_514.R file).  The dataset contains input X data containing image of numbers between 0 and 9 and actual y label of the number.  Image pixels range between 0 and 255 and have to be scaled by dividing by matrix by 255 before you use the data.
+
+- http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz
+- http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz
+- http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz
+- http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz
+
+LeCun's MNIST data has 60k train samples and 10k test samples
+
+
+```{r}
+download_mnist()
+```
+
+**Step 8 Train a model to predict MNIST data**
+
+Use your softmax.fit to train a model on MNIST training data.  Use the load_image_file and load_label_file provided in the hw4_514.R file to read the binary ubyte files
+
+- build a model using softmax.fit using a random sample of 1000 train images using a learning rate of .1 and 100 iterations
+- test model accuracy both in sample and out of sample. Use the provided test data for out-of-sample images and tags
+- plot the cost history of the solution
+- plot weight history
+- plot gradient history
+- plot performance history of the model
+
+
+```{r}
+mnist = list(train=load_image_file("train-images-idx3-ubyte"),test=load_image_file("t10k-images-idx3-ubyte"))
+mnist[["train"]]$y = load_label_file("train-labels-idx1-ubyte")
+mnist[["test"]]$y = load_label_file("t10k-labels-idx1-ubyte")  
+
+train_set=sample(1:dim(mnist$train$x)[1], size = 1000)
+X=t(mnist[["train"]]$x[train_set,])/255.
+y=mnist[["train"]]$y[train_set]
+Y=one.hot(y)
+
+testX=t(mnist[["test"]]$x)/255.
+testY=mnist[["test"]]$y
+
+M=ncol(X)
+b=numeric(10)
+w=matrix(rnorm(10*784),nrow=10,ncol=784)
+
+n = nrow(X)  # number of input nodes
+n.out = nrow(Y)
+M = ncol(X)  # number of samples
+
+b0 = runif(n.out,-.1,.1)
+w0 = matrix(rnorm(n*n.out,0,.1),nrow=n.out,ncol=n)
+
+lr=.1
+history = softmax.fit(X,Y,lr,max.its=100,b0,w0)
+c(cost_final,b,w,g,ts) %<-% history[[length(history)]]
+difftime(history[[length(history)]]$ts,history[[1]]$t, units='secs')
+plot(unlist(lapply(history,'[',"cost")),main='cost history',ylab="")
+  
+pred=predict(X,b,w)
+table(pred==y+1)/length(pred)  
+plot(perf.history(X,y+1,history ),main='performance history',ylab='')
+
+
+test_pred=predict(testX,b,w)
+table(test_pred,testY+1)
+table(test_pred==testY+1)/length(test_pred)  
+
+```
+
+
+
+**Step 9 Train model on full data **
+
+Re-run the model now using the full 60k train data and check performance using the MNIST test data
+
+
+
+```{r full_mnist_model, cache=TRUE}
+X=t(mnist[["train"]]$x)/255.
+y=mnist[["train"]]$y
+Y=one.hot(y)
+
+testX=t(mnist[["test"]]$x)/255.
+testY=mnist[["test"]]$y
+
+M=ncol(X)
+b=numeric(10)
+w=matrix(rnorm(10*784),nrow=10,ncol=784)
+
+n = nrow(X)  # number of input nodes
+n.out = nrow(Y)
+M = ncol(X)  # number of samples
+
+b0 = runif(n.out,-.1,.1)
+w0 = matrix(rnorm(n*n.out,0,.1),nrow=n.out,ncol=n)
+
+lr=.1
+
+history = softmax.fit(X,Y,lr,max.its=100,b0,w0)
+
+c(cost_final,b,w,g,ts) %<-% history[[length(history)]]
+as.numeric(ts-history[[1]]$ts)
+  
+plot(unlist(lapply(history,'[',"cost")),main='cost history',ylab="")
+  
+pred=predict(X,b,w)
+table(pred==y+1)/length(pred)  
+plot(perf.history(X,y+1,history ),main='performance history',ylab='')
+
+
+test_pred=predict(testX,b,w)
+table(test_pred,testY+1)
+table(test_pred==testY+1)/length(test_pred)  
+# accuracy for each digit
+diag(prop.table( table(test_pred,testY+1),2))
+# 5 performs worst, followed by 8 then 2, then 9 and 3
+#        1         2         3         4         5         6         7         8 
+# 0.9479592 0.9444934 0.8032946 0.8326733 0.8513238 0.6804933 0.9029228 0.8570039 
+#         9        10 
+# 0.7618070 0.8126858 
+
+```
+**Step 10 Examine Errors **
+
+Score the train data using the model from step 10. For each digit, find the image that scored the highest and the lowest. For example, for all of the '7' images, find the one that scored the highest to be a '7' and the one that scored the lowest to be a '7'. Plot the best/worst side by side. Annotate your images with their prediction. For us, the 'worst' 7 was predicted to be a 2. Use the provided function show_digit2 to display images.
+
+```{r}
+#for each digit get the best scoring and worst scoring image and plot
+get_best_worst=function(X,y,digit,b,w){
+  D=X[,y==digit]
+  s0=fit(D,b,w)
+  yhat=predict(D,b,w)
+  best=which.max(s0[digit+1,])
+  worst=which.min(s0[digit+1,])
+  return(list(best.image=D[,best],best.y=yhat[best],worst.image=D[,worst],worst.y=yhat[worst]))
+}
+
+par.mfrow=par(mfrow=c(10,2))
+par.mar=par(mar=c(.2,.2,.2,.2))
+
+for(digit in 0:9){
+  print(digit)
+  c(best,best.y,worst,worst.y) %<-% get_best_worst(testX,testY,digit,b,w)
+  show_digit2(best,col=gray(0:255/255))
+  text(.9,.2,best.y-1,col="yellow",cex=2)
+  show_digit2(worst,col=gray(0:255/255))
+  text(.9,.2,worst.y-1,col="yellow",cex=2)
+}
+par(mfrow=par.mfrow)
+par(mar=par.mar)
+
+if(FALSE){
+s=fit(testX,b,w)
+# for 7 look at a wrong prediction where truth is 7 but prediction for 7 is lowest
+wrong7=apply(s,2,which.min)==7
+show_digit2(testX[,wrong7 & test_pred!=testY+1 & testY==7 ][,1])
+which.max(s[,wrong7 & test_pred!=testY+1 & testY==7 ][,1])-1
+
+# now do the same for 1
+wrong1=apply(s,2,which.min)==1
+show_digit2(testX[,wrong1 & test_pred!=testY+1 & testY==1 ][,1])
+which.max(s[,wrong1 & test_pred!=testY+1 & testY==1 ][,1])-1
+}
+
+```
+
+
+**Step 11 Explore learning rate parameters to try to get better performance **
+
+Various online reference achieve 92% accuracy on MNIST when using a learning rate of .5 and 1000 iterations.  Explore the impact of learning rate and iterations on your MNIST model.  
+
+Setting the learning rate is one of the most important parameter in models.  Run an experiment to evaluate a range of learning rates and plot the resulting cost histories.
+
+- What combination of leaning rate and iterations gave you the best out-of-sample performance?
+
+
+```{r}
+cost_history=vector(mode='list')
+perf_history=vector(mode='list')
+hist=vector(mode='list')
+wgt_history=vector(mode='list')
+oos_perf=list()
+epochs=100
+lrates=c(.01,.025,.25,.5,1,2.5)
+for (lr in lrates){
+  history = softmax.fit(X,Y,lr,max.its=epochs,b0,w0)
+  c(cost_final,b,w,g,ts) %<-% history[[length(history)]]
+  print(paste("completed lr=",lr, as.numeric(ts-history[[1]]$ts)))
+  j=length(cost_history)
+  cost_history[[j+1]]=cost.history(history)
+  perf_history[[j+1]]=perf.history(X,Y,history)
+  wgt_history[[j+1]]=wgt.history(history)
+  hist[[j+1]]=history
+
+  test_pred=predict(testX,b,w)
+  oos_perf[[j+1]]=sum(test_pred==testY+1)/length(test_pred)
+}
+
+colors <- c('red','green','blue','purple','orange','pink','black') 
+#linetype <- c(1:length(lr)) 
+plot(cost_history[[1]],lwd=1.5,type='l',col=colors[1],main='Cost history',ylim=c(min(unlist(cost_history)),max(unlist(cost_history))))
+for (i in 2:length(lrates)) lines(cost_history[[i]],col=colors[i],lwd=1.5)
+legend("topright", legend = lrates, col = colors,lwd=1 )
+
+plot(perf_history[[1]],lwd=1.5,type='l',col=colors[1],main='Performance History',ylim=c(min(unlist(perf_history)),max(unlist(perf_history))))
+for (i in 2:length(lrates)) lines(perf_history[[i]],col=colors[i],lwd=1.5)
+legend("topright", legend = lrates, col = colors,lwd=1 )
+
+dotchart(lrates,round(100*unlist(oos_perf),1),ylim=c(0,1),ylab='perf',main='Out-of-Sample Accuracy') #barplot(t(data.frame(acc=unlist(oos_perf))),ylim=c(0,1),names=lr,col=colors[1:5], beside=TRUE,main='perf by lr')
+
+```
+
