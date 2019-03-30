@@ -9,9 +9,9 @@ x <- t(spirals$x )
 
 
 
-plot(spirals , pch = 15)
 
-X <- x; Y <- y; HL <- 1; nodes <- 15; batches <- 3; LR = .5
+
+X <- x; Y <- y; HL <- 1; nodes <- 15; batches <- 2; LR = 3
 
 	WB <- init.wgt( HL, nodes , X) 
 	W <- WB$W; B <- WB$B
@@ -34,29 +34,25 @@ X <- x; Y <- y; HL <- 1; nodes <- 15; batches <- 3; LR = .5
 	ij <- 1
 	Costs <- rep(NA, 30000 * batches)
 	 db <- dw <- list()
-	C2 <- 100; sm <- .001
+	C2 = 100
 
 	ST <-system.time( 
-	for( i in 1:115000) {
-		if( i %in% seq(2,15000,20) ){ print(C2) }
-		yhat <- fwd.prop( X , HL , W, B, relu, Sigmoid)$A[[2]]
-		yhat <- ifelse( yhat > .5 , 1 , 0    )
+	for( i in 1:100000) {
 		
-		if( sum(( as.vector(yhat) == y ) * 1) /  
-			length(as.vector(Y)) == 1 ) {break}
+	if( i %in% seq( 1 , 100000, 20 ) ){print(Costs[ij-1]) }
 	BS[1:M] <- sample(M) 
  	for( k in 1:batches) {
+		if( C2 < .3) {break}
 		Xt[[k]] <- X[, BS[   BS[,k] > 0 , k ] ]
 		Yt[[k]] <- Y[ BS[   BS[,k] > 0 , k ]  ] }
 
 	for( v in 1:length(Xt) ){
 
-		FP  <- fwd.prop( Xt[[v]] , HL , W, B, relu, Sigmoid)
-		C2 <- Costs[ij] <- Cost(Yt[[v]] ,  abs(  FP$A[[ HL+1 ]] - 1e-9,
-			FP$A[[ HL+1 ]] )), "Sigmoid")
+		FP  <- fwd.prop( Xt[[v]] , HL , W, B, sigmoid, Sigmoid)
+		C2 <- Costs[ij] <- Cost( Yt[[v]] , FP$A[[ HL+1 ]], "Sigmoid")
  		ij <- ij + 1
  		BP  <-  bk.prop(Xt[[v]], Yt[[v]], HL , W, B, FP$Z, FP$A , 
-			relu, Sigmoid ) 	
+			sigmoid, Sigmoid ) 	
  
 	for( j in 1:(HL + 1)  ){
 		B[[j]] <- B[[j]] - (LR) * BP$dB[[j]]
@@ -65,11 +61,9 @@ X <- x; Y <- y; HL <- 1; nodes <- 15; batches <- 3; LR = .5
 
  
  
-  
-
  
-
-yhat <- fwd.prop( X , HL , W, B, relu, Sigmoid)$A[[2]]
+ 
+yhat <- fwd.prop( X , HL , W, B, sigmoid, Sigmoid)$A[[2]]
 yhat <- ifelse( yhat > .5 , 1 , 0    )
 sum(( as.vector(yhat) == y ) * 1) /  length(as.vector(Y))
 
@@ -77,27 +71,29 @@ sum(( as.vector(yhat) == y ) * 1) /  length(as.vector(Y))
 	which( ( as.vector(yhat) == y ) == F)]
 
 
-log(  FP$A[[ HL+1 ]]  )
-
- Cost(Yt[[v]] ,ifelse( FP$A[[ HL+1 ]] == 1 , 
-	 FP$A[[ HL+1 ]] - sm , FP$A[[ HL+1 ]]),
- "Sigmoid")
-
-fwd.prop(  	x , 1,  W, B, 		relu, Sigmoid)$A[[2]]
 
 
-spiral.predict( 
-	plot(spirals, pch = 18)
-	SM <-  ( c( seq(-1.5,1.5,.1/2)  )  )
-
-	for( i in 1:length(SM) ){
-	for( j in 1:length(SM) ){ 
-		Yhat <- fwd.prop( (as.matrix( c( SM[i], SM[j] ) )) , 
-			1,  W, B, 	relu, Sigmoid)$A[[2]]  
-		Yhat <- ifelse( Yhat > .5 , 2 , 1 )
-		points( SM[i ] , SM[j ] , pch = 3 , col = Yhat) 
-	}}
 
 
-	
 
+###########################################################################
+
+
+
+setwd("G:\\math\\514")
+source("hw5_514.r")
+
+spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
+
+y <- as.numeric(spirals$classes) - 1
+x <- t(spirals$x )
+
+
+nnet1.fit(xt , yt , 1 , 10 , 10000 , 1 , sigmoid, Sigmoid)
+
+
+
+  bk.prop(Xt[[v]], Yt[[v]], HL , W, B, FP$Z, FP$A , 
+			sigmoid, Sigmoid ) 
+  bkprop(Xt[[v]], Yt[[v]], HL , W, B, FP$Z, FP$A , 
+			sigmoid, Sigmoid, derivative = dsigmoid ) 
