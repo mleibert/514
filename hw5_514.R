@@ -491,7 +491,7 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
 		FP  <- fwd.prop( X , HL , W, B, Activation, Output)
 		C2 <- Costs[i] <- Cost( Y , FP$A[[ HL+1 ]] ,  Outpt )
  		
- 		BP <-  bk.prop(X, Y, HL , W, B, FP$Z, FP$A , Activation ) 
+ 		BP <-  bk.prop(X, Y, HL , W, B, FP$Z, FP$A , Acts ) 
  
 		B.OLD <- B; W.OLD <- W
 	for( j in 1:(HL + 1)  ){
@@ -514,7 +514,7 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
  
 
 
-bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act = relu  ){
+bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act    ){
 
 	if( Act == "relu" ){ derivative <- drelu 
 	} else if ( Act== "tanh" ) {   derivative <- dtanh 
