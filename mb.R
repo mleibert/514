@@ -7,11 +7,27 @@ spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
 y <- as.numeric(spirals$classes) - 1
 x <- t(spirals$x )
 
+fit <- nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, 3, 
+	Activation = sigmoid, Output = Sigmoid); beep("coin")
+
+nnet1.fit( x, y, 1, 15, 50 ,  MaxLR = 1,
+ Activation = relu,   Output = Identity )
+
+fit$perf
+#beep("coin") 
+
+ fit$perf[!is.na(fit$performance)]
+
+nnet.Predict( x , 1 , y, 1, fit$B, fit$W, relu, Sigmoid, Batch = 3)
 
 
 plot(spirals , pch = 15)
 
-X <- x; Y <- y; HL <- 1; nodes <- 15; batches <- 3; LR = .5
+plot(1:10, type="l")
+#########
+
+
+# X <- x; Y <- y; HL <- 1; nodes <- 55; batches <- 4; LR = .5
 
 	WB <- init.wgt( HL, nodes , X) 
 	W <- WB$W; B <- WB$B
@@ -36,14 +52,12 @@ X <- x; Y <- y; HL <- 1; nodes <- 15; batches <- 3; LR = .5
 	 db <- dw <- list()
 	C2 <- 100; sm <- .001
 
+	Its <- 75000
+
 	ST <-system.time( 
-	for( i in 1:115000) {
-		if( i %in% seq(2,15000,20) ){ print(C2) }
-		yhat <- fwd.prop( X , HL , W, B, relu, Sigmoid)$A[[2]]
-		yhat <- ifelse( yhat > .5 , 1 , 0    )
-		
-		if( sum(( as.vector(yhat) == y ) * 1) /  
-			length(as.vector(Y)) == 1 ) {break}
+	for( i in 1:Its ) {
+		if( i %in% seq(2,Its ,20) ){ print(C2) }
+
 	BS[1:M] <- sample(M) 
  	for( k in 1:batches) {
 		Xt[[k]] <- X[, BS[   BS[,k] > 0 , k ] ]
@@ -51,23 +65,39 @@ X <- x; Y <- y; HL <- 1; nodes <- 15; batches <- 3; LR = .5
 
 	for( v in 1:length(Xt) ){
 
-		FP  <- fwd.prop( Xt[[v]] , HL , W, B, relu, Sigmoid)
-		C2 <- Costs[ij] <- Cost(Yt[[v]] ,  abs(  FP$A[[ HL+1 ]] - 1e-9,
-			FP$A[[ HL+1 ]] )), "Sigmoid")
+		FP  <- fwd.prop( Xt[[v]] , HL , W, B, tanh, Sigmoid)
+		C2 <- Costs[ij] <- Cost(Yt[[v]] ,   FP$A[[ HL+1 ]] , "Sigmoid")
  		ij <- ij + 1
  		BP  <-  bk.prop(Xt[[v]], Yt[[v]], HL , W, B, FP$Z, FP$A , 
-			relu, Sigmoid ) 	
+			tanh) 	
  
 	for( j in 1:(HL + 1)  ){
 		B[[j]] <- B[[j]] - (LR) * BP$dB[[j]]
 		W[[j]] <- W[[j]] - (LR) * BP$dW[[j]] }
-	}}  ) 
+	} 
+	if( nnet.Predict(  "Sigmoid" , X , Y, 1, W , B, tanh ) == 1){break}
+
+}  )  
+beep("coin")
 
  
  
-  
 
+ yhat <-fwd.prop( X, HL,  W, B, relu , Sigmoid)$A[[HL+1]]
  
+ yhat <- ifelse( yhat == 1 , yhat - 1e-15 , yhat )
+ yhat <- ifelse( yhat == 0 , yhat + 1e-15 , yhat )
+yhat <- ifelse( yhat > .5 , 1 , 0 )
+sum(( Y == yhat )*1 )
+ 
+		yhat <- fwd.prop( X , HL , W, B, relu, Sigmoid)$A[[2]]
+		yhat <- ifelse( yhat > .5 , 1 , 0    )
+		
+		if( sum(( as.vector(yhat) == y ) * 1) /  
+			length(as.vector(Y)) == 1 ) {break}
+
+
+
 
 yhat <- fwd.prop( X , HL , W, B, relu, Sigmoid)$A[[2]]
 yhat <- ifelse( yhat > .5 , 1 , 0    )

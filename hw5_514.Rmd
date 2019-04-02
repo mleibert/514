@@ -271,7 +271,7 @@ sum(( y  ==   as.numeric( spfit.pred6  ) ) * 1 ) / length(y)
 
 ```{r}
 
-fit.sp5 <- nnet1.fit( x, y , 3 , c(25,25) ,  200000 ,  1.5 ,   	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
+#fit.sp5 <- nnet1.fit( x, y , 3 , c(25,25) ,  200000 ,  1.5 ,   	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
 
 ```
 
@@ -334,14 +334,35 @@ print.fun('nnet1.fit.batch')
 
 - how does this compare against the full gradient descent neural network model from step 9
 
-```{r}
-data=mlbench.spirals(75,1.5,.07)
-X=t(data$x)
-Y=matrix(as.integer(data$classes)-1,nrow=1)
+```{r batch.sigmoid, cache=T}
+spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
 
+y <- as.numeric(spirals$classes) - 1
+x <- t(spirals$x )
 
-
+sp.fit.b1 <- nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, .5, 
+	Activation = sigmoid, Output = Sigmoid); beep("coin")
 ```
+
+```{r}
+sp.fit.b1$iter
+tail(sp.fit.b1$performance,1)
+plot(sp.fit.b1$performance, type="l")
+plot(sp.fit.b1$costs, type="l" )
+```
+
+```{r batch.relu, cache=T }
+sp.fit.b2 <- nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, .5, 
+	Activation = relu, Output = Sigmoid); beep("coin")
+```
+
+```{r}
+sp.fit.b2$iter
+tail(sp.fit.b2$performance,1)
+plot(sp.fit.b2$performance, type="l")
+plot(sp.fit.b2$costs , type="l")
+```
+
 
 ** Step 12 train using mini-batch gradient descent on MNIST**
 
