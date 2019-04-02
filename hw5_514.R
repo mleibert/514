@@ -476,7 +476,7 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
 	Acts <- as.character(substitute(Activation ) )
 	Outpt <- as.character(substitute( Output ) )
  
-	WB <- init.wgt( HL, nodes , X, Y ) 
+	WB <- init.wgt( HL, nodes , X, Y , Outpt  ) 
 	W <- WB$W; B <- WB$B
 
 	if( Acts == "relu" ){ Derivative <- drelu 
