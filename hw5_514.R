@@ -589,33 +589,26 @@ bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act    ){
 nnet1.fit.batch <- function( X, Y, HL, Batches = 1, nodes, Nsim ,  MaxLR = 1,
 		 Activation  ,   Output , Batsize = 0  ){
 
-	LR <- MaxLR
-	WB <- init.wgt( HL, nodes , X, Outpt ) 
-	W <- WB$W; B <- WB$B
 
 	Acts <- as.character(substitute(Activation ) )
 	Outpt <- as.character(substitute( Output ) )
  
+	LR <- MaxLR
+	WB <- init.wgt( HL, nodes , X, Y, Outpt ) 
+	W <- WB$W; B <- WB$B
 
-	if( Acts == "relu" ){ Derivative <- drelu 
-		} else if ( Acts == "tanh" ) {   Derivative <- dtanh 
-		} else { Derivative <- dsigmoid } 
-
-	C1 <- 0; Costs <- list()
-	M <- length(as.vector(Y))
+	C1 <- 0; C2 <- 100; Perf <- rep(NA, Nsim)
+	Costs <- rep(NA, Nsim * Batches)
+	M <- length(as.vector(Y)); ij <- 1
 
 	#Batch	
-	Xt <- Yt <- list()
-	BS <- matrix(  0 , round(M / Batches) , Batches)
-	BP <- list()
-	ij <- 1
-	Costs <- rep(NA, Nsim * Batches)
-	 db <- dw <- list()
-	C2 <- 100; sm <- .001; Perf <- rep(NA, Nsim) 
+	Xt <- Yt <- BP <- db <- dw <- list()
+	
 	if(Outpt == "stable.softmax"){ OH <- one.hot(Y)  }
 
 	if( Batsize > 0 ){ BS <- matrix( 0 , nrow = Batsize, 
-		ncol = ceiling(M/Batsize )); Batches = ncol(BS)}
+		ncol = ceiling(M/Batsize )); Batches = ncol(BS)} else {
+		BS <- matrix(  0 , round(M / Batches) , Batches) }
  
 	ST <-system.time( 
 	for( i in 1:Nsim ) {

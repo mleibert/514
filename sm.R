@@ -21,16 +21,13 @@ Classes[apply(yhat , 2 , function( M ) which( M == max(M) ) ) ]
 
 
         LR <- MaxLR
-        WB <- init.wgt( HL, nodes , X) 
+        WB <- init.wgt( HL, nodes , X, Y, "stable.softmax" ) 
         W <- WB$W; B <- WB$B
 
         Acts <- as.character(substitute(Activation ) )
         Outpt <- as.character(substitute( Output ) )
  
-
-        if( Acts == "relu" ){ Derivative <- drelu 
-                } else if ( Acts == "tanh" ) {   Derivative <- dtanh 
-                } else { Derivative <- dsigmoid } 
+ 
 
         C1 <- 0; Costs <- list()
         M <- length(as.vector(Y))
@@ -57,10 +54,14 @@ Classes[apply(yhat , 2 , function( M ) which( M == max(M) ) ) ]
 #})
 #return( list( xt = Xt , yt = Yt )) }
 
+
+dim( FP$A[[ HL+1 ]]  )
+dim(  Yt[[v]] )
         for( v in 1:length(Xt) ){
                 
-                FP  <- fwd.prop( Xt[[v]] , HL , W, B, Activation, Output)
-                C2 <- Costs[ij] <- Cost(Yt[[v]], FP$A[[ HL+1 ]] , Outpt, Batches )
+                FP  <- fwd.prop( Xt[[v]] , HL , W, B, relu, stable.softmax)
+                C2 <- Costs[ij] <- Cost(Yt[[v]], FP$A[[ HL+1 ]] , 
+				"stable.softmax", 2000 )
                 ij <- ij + 1
                 BP  <-  bk.prop(Xt[[v]], Yt[[v]], HL , W, B, FP$Z, FP$A , 
                         Activation, Batches)    
