@@ -668,35 +668,36 @@ nnet.Predict <- function( OP, X, Y , HL, W, B, Activation  ) {
 # 
 
 
-
-bk.prop <-  function( X, Y, L, W, B,  Z , A,  Activation    ){
-
-  Act  <- as.character(substitute( Act ) )
-
-  if( Act == "relu" ){ derivative <- drelu
-  } else if ( Act== "tanh" ) {   derivative <- dtanh
-  } else { derivative <- dsigmoid }
-
-  m <- length( as.vector( Y ))
-  dZ <- dW <- dB <- list()
-  A[[length(A)+1]] <- X
-  A <- A[ c(length(A), 1:(length(A)-1) ) ]
-
-  ell <- L+1
-  if(  length(as.vector(  unique( y ) ) ) > 2  ){
-    dZ[[ell]] <- A[[ell+1]]- one.hot(Y) } else {
-      dZ[[ell]] <- A[[ell+1]] - Y }
-
-  while( ell >= 1 ){
-
-    dW[[ell]] <- (1/m) * dZ[[ell]] %*% t( A[[ell]] )
-    dB[[ell]] <- (1/m)*dZ[[ell]] %*% rep(1, m )
-
-    if( ell > 1) {
-      dZ[[ell-1]] <- t( W[[ell]] ) %*%  dZ[[ell]] *
-        apply( Z[[ell-1]] , c(1,2), derivative ) }
-    ell <- ell - 1 }
-
-  return( list(dZ = dZ , dB= dB , dW=dW ) ) }
-
-
+# 
+# bk.prop <-  function( X, Y, L, W, B,  Z , A,  Acti , Batch = 1  ){
+#   
+#   Act  <- as.character(substitute( Acti ) )
+#   
+#   if( Act == "relu" ){ derivative <- drelu 
+#   } else if ( Act== "tanh" ) {   derivative <- dtanh 
+#   } else { derivative <- dsigmoid }	
+#   
+#   m <- ifelse( Batch > 1 & (is.matrix(Y)==T), 
+#                ncol(Y), length( as.vector( Y )))
+#   dZ <- dW <- dB <- list()
+#   A[[length(A)+1]] <- X
+#   A <- A[ c(length(A), 1:(length(A)-1) ) ]
+#   
+#   ell <- L+1
+#   if(   dim(   A[[ L + 1 ]] )[2]   > 2  ){
+#     OneH <- ifelse( is.matrix(Y) == T, Y  , one.hot(Y) )
+#     dZ[[ell]] <- A[[ell+1]]- OneH } else {
+#       dZ[[ell]] <- A[[ell+1]] - Y }
+#   
+#   while( ell >= 1 ){
+#     
+#     dW[[ell]] <- (1/m) * dZ[[ell]] %*% t( A[[ell]] )  
+#     dB[[ell]] <- (1/m)*dZ[[ell]] %*% rep(1, m )
+#     
+#     if( ell > 1) {
+#       dZ[[ell-1]] <- t( W[[ell]] ) %*%  dZ[[ell]] *
+#         apply( Z[[ell-1]] , c(1,2), derivative ) }
+#     ell <- ell - 1 } 
+#   
+#   return( list(dZ = dZ , dB= dB , dW=dW ) ) }
+# 
