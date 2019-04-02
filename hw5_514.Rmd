@@ -262,7 +262,7 @@ fit.sp2 <- nnet1.fit( x, y, 1 , 5 , 100000,  .5,   relu,  Sigmoid );  #beep("coi
 ```
 
 ```{r, cache= T }
-fit.sp3 <- nnet1.fit( x, y, 1 , 5 , 100000, 1.5,   sigmoid,  Sigmoid );  #beep("coin") 
+fit.sp3 <- nnet1.fit( x, y, 1 , 5 , 100000, 3,   sigmoid,  Sigmoid );  #beep("coin") 
 ```
 
 ```{r, cache= T }
@@ -275,11 +275,14 @@ fit.sp5 <- nnet1.fit( x, y, 1 , 100 , 100000,  .5,   relu,  Sigmoid );  #beep("c
 ```
 
 ```{r, cache= T }
-fit.sp6 <- nnet1.fit( x, y, 1 , 100 , 100000, 1.5,   sigmoid,  Sigmoid );  #beep("coin") 
+fit.sp6 <- nnet1.fit( x, y, 1 , 100 , 100000, 3,   sigmoid,  Sigmoid );  #beep("coin") 
 ```
 
 
-```{r, eval= F}
+```{r }
+spfit.pred1 <- ifelse( fit.sp1$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred1  ) ) * 1 ) / length(y)
+
 spfit.pred2 <- ifelse( fit.sp2$yhat  > .5 , 1 , 0    )
 sum(( y  ==   as.numeric( spfit.pred2  ) ) * 1 ) / length(y)
 
@@ -289,7 +292,10 @@ sum(( y  ==   as.numeric( spfit.pred3  ) ) * 1 ) / length(y)
 ```
 
 
-```{r, eval= F}
+```{r }
+spfit.pred4 <- ifelse( fit.sp4$yhat  > .5 , 1 , 0    )
+sum(( y  ==   as.numeric( spfit.pred4  ) ) * 1 ) / length(y)
+
 spfit.pred5 <- ifelse( fit.sp5$yhat  > .5 , 1 , 0    )
 sum(( y  ==   as.numeric( spfit.pred5  ) ) * 1 ) / length(y)
 
@@ -424,6 +430,23 @@ Classes  <-  sort(unique(as.vector(y)))
 yhat <- Classes[apply(yhat , 2 , function( M ) which( M == max(M) ) ) ] 	 
 sum((yhat == y)) / length(y)
 ```
+
+
+```{r, cache=T}
+mtest <- read.csv("G:\\math\\mnist_test.csv" , header = F)
+nx <- unname( mtest[,-1] )
+nx <- t(nx)
+nx <- nx / 255
+ny <-  as.matrix( unname(  mtest[,1] ))
+```
+
+```{r, cache=T}
+yhat1 <- fwd.prop( nx  , 1 , mnist.fit.bat$W,  mnist.fit.bat$B, relu, stable.softmax)
+yhat1 <- yhat1$A[[2]]
+yhat1 <- Classes[apply(yhat1 , 2 , function( M ) which( M == max(M) ) ) ] 	 
+sum((yhat1 == ny)) / length(ny)
+```
+
 
 ```{r, eval=F}
 
