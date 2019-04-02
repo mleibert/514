@@ -62,7 +62,6 @@ Y=matrix(as.integer(data$classes)-1,nrow=1)
 print.fun('cost.squared.error')
 print.fun('cost.negll')
 print.fun('cost.cross.entropy')
-
 ```
 
 **Step 3 Implement 3 output activation functions**
@@ -75,7 +74,6 @@ print.fun('cost.cross.entropy')
 print.fun('identity')
 print.fun('sigmoid')
 print.fun('stable.softmax')
-
 ```
 
 
@@ -119,7 +117,6 @@ print.fun('dtanh')
 ```{r}
 print.fun('fwd.prop')
 print.fun('bk.prop')
-
 ```
 
 **Step 5b Numerically check gradients**
@@ -131,10 +128,47 @@ print.fun('bk.prop')
 - Test gradients for cross-entropy error with numerically stable softmax output activation using data for 3 class mixture provided below
 
 ```{r}
+c(x,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
+
+wb <- init.wgt( 1, 5 , x, y , "relu" ) 
+fp <- fwd.prop( x  , 1 , wb$W, wb$B, relu, Sigmoid)
+bp <- bk.prop(x , y, 1, wb$W, wb$B,  fp$Z , fp$A,  "relu")
+
+bp$dB[[2]]; bp$dW[[2]]
+num.gradient( fp$A[[1]], y, wb$B[[2]],  wb$W[[2]], cost.negll  )
+```
 
 
- 
+```{r}
+spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
 
+y <- as.numeric(spirals$classes) - 1
+x <- t(spirals$x )
+
+wb <- init.wgt( 1, 5 , x, y , "relu" ) 
+fp <- fwd.prop( x  , 1 , wb$W, wb$B, relu, Sigmoid)
+bp <- bk.prop(x , y, 1, wb$W, wb$B,  fp$Z , fp$A,  "relu")
+
+bp$dB[[2]]; bp$dW[[2]]
+num.gradient( fp$A[[1]], y, wb$B[[2]],  wb$W[[2]], cost.negll  )
+```
+
+```{r}
+n1=50; mu1=c(.5,.5);  cov1=diag(.2,2)
+n2=40; mu2=c(1.5,1.5);cov2=diag(.1,2)
+n3=30; mu3=c(1.5,0);  cov3=diag(.1,2)
+mean.cov.list=list()
+mean.cov.list[[1]]=list(n=50, mu=c(.5,.5),  cov=diag(.2,2))
+mean.cov.list[[2]]=list(n=40, mu=c(1.5,1.5),cov=diag(.1,2))
+mean.cov.list[[3]]=list(n=30, mu=c(1.5,0),  cov=diag(.1,2))
+c(x,y) %<-% gen.gaussian.data.2d(mean.cov.list)
+
+wb <- init.wgt( 1, 5 , x, y , outp = "stable.softmax" ) 
+fp <- fwd.prop( x  , 1 , wb$W, wb$B, relu, stable.softmax)
+bp <- bk.prop(x , y, 1, wb$W, wb$B,  fp$Z , fp$A,  "relu")
+
+bp$dB[[2]]; bp$dW[[2]]
+num.gradient( fp$A[[1]], y, wb$B[[2]],  wb$W[[2]], cost.cross.entropy )
 ```
 
 
@@ -187,7 +221,7 @@ lines(as.vector(fit.LG1$yhat ))
 
 
 ```{r, cache = T}
-fit.LG2 <- nnet1.fit( x, y, 1 , 5 , 30000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
+fit.LG2 <- `( x, y, 1 , 5 , 30000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
 plot(as.vector(y))
 lines(as.vector(fit.LG2$yhat ))
 ```

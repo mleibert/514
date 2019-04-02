@@ -360,7 +360,7 @@ dsigmoid <- function(X){ sigmoid(X) * (1-sigmoid(X) ) }
 init.wgt <- function( layers , nodes , X, Y, outp = "Sigmoid", d = .01 ) {
 	W <- B <- list()
 	LN <- ifelse( outp != "stable.softmax", 
-		1 ,	length(as.vector(  unique( y ) ) ) )
+		1 ,	length(unique(  as.vector( y ) ) )  )
 	node <- c( dim(X)[1] , nodes, LN )
 	for( i in 1:(layers+1) ){
 		W[[i]] <- d*matrix(rnorm(node[i]*node[i+1],.1),
@@ -406,7 +406,7 @@ fwd.prop <- function( X , L, W , B , activation , output   ){
 bk.props <-  function( X, Y, L, W, B, Activation = relu, derivative = drelu,
 		  Output = Identity ){
 
-	fp <- fwd.prop( X , L, W , B, activation = Activation, output = Output ) 
+	fp <- fwd.prop( X, L, W , B, activation = Activation, output = Output ) 
 	m <- length( as.vector( y ))
 	dz <- dw <- db <- list()
 
@@ -469,7 +469,7 @@ bk.prop <-  function( X, Y, L, W, B,  Z , A,  Activation = relu,
 ####
 
 nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
-		 Activation = relu,   Output = Identity ){
+		 Activation  ,   Output   ){
 	
 	LR <- MaxLR
 	
@@ -479,16 +479,19 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
 	WB <- init.wgt( HL, nodes , X, Y , Outpt  ) 
 	W <- WB$W; B <- WB$B
 
-	if( Acts == "relu" ){ Derivative <- drelu 
-		} else if ( Acts == "tanh" ) {   Derivative <- dtanh 
-		} else { Derivative <- dsigmoid } 
+	#if( Acts == "relu" ){ Derivative <- drelu 
+	#	} else if ( Acts == "tanh" ) {   Derivative <- dtanh 
+	#	} else { Derivative <- dsigmoid } 
 
-	C1 <- 0; Costs <- rep(NA, Nsim)
+	C1 <- 0; Costs <- perf <- rep(NA, Nsim)
 	M <- length(as.vector(Y))
  
 	ST <-system.time( 
 	for( i in 1:Nsim) {
 		FP  <- fwd.prop( X , HL , W, B, Activation, Output)
+
+		perf[i] <- nnet.Predict( Outpt, X,  Y , HL, W, B, Activation, 
+			Fp = FP$A[[ HL + 1 ]] )
 		C2 <- Costs[i] <- Cost( Y , FP$A[[ HL+1 ]] ,  Outpt )
  		
  		BP <-  bk.prop(X, Y, HL , W, B, FP$Z, FP$A , Acts ) 
@@ -504,9 +507,10 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
 		C1 <- C2
  
 		LR <- ifelse( LR > MaxLR , MaxLR , LR ) 
- 
+ 		 
 	}) 
-	return( list(   st = ST, yhat = FP$A[[ HL+1 ]], costs = C2 , W=W, B=B)  ) }
+	return( list(   st = ST, yhat = FP$A[[ HL+1 ]], 
+		costs = Costs , W=W, B=B , perf = perf)  ) }
 
 
 
@@ -516,6 +520,7 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
 
 bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act    ){
 
+	
 	if( Act == "relu" ){ derivative <- drelu 
 	} else if ( Act== "tanh" ) {   derivative <- dtanh 
 	} else { derivative <- dsigmoid }	
@@ -585,7 +590,7 @@ nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
 		 Activation  ,   Output  ){
 
 	LR <- MaxLR
-	WB <- init.wgt( HL, nodes , X) 
+	WB <- init.wgt( HL, nodes , X, Outpt ) 
 	W <- WB$W; B <- WB$B
 
 	Acts <- as.character(substitute(Activation ) )
@@ -627,7 +632,7 @@ nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
 		C2 <- Costs[ij] <- Cost(Yt[[v]], FP$A[[ HL+1 ]] , Outpt, Batches )
  		ij <- ij + 1
  		BP  <-  bk.prop(Xt[[v]], Yt[[v]], HL , W, B, FP$Z, FP$A , 
-			Acts ) #, Batches) 	
+			Acts , Batches) 	
  
 	for( j in 1:(HL + 1)  ){
 		B[[j]] <- B[[j]] - (LR) * BP$dB[[j]]
@@ -729,3 +734,89 @@ nnet.Predict <- function( OP, X, Y , HL, W, B, Activation  ) {
 #   
 #   return( list(dZ = dZ , dB= dB , dW=dW ) ) }
 # 
+
+bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act, batchs = 1 ){
+
+	if( Act == "relu" ){ derivative <- drelu 
+	} else if ( Act== "tanh" ) {   derivative <- dtanh 
+	} else { derivative <- dsigmoid }	
+
+	
+	dZ <- dW <- dB <- list()
+	A[[length(A)+1]] <- X
+	A <- A[ c(length(A), 1:(length(A)-1) ) ]
+
+	if( nrow( A[[length(A) ]] ) > 2 & batchs > 1 ) { m <- ncol(Y) } else {
+		m <- length( as.vector( Y )) }
+
+ 	ell <- L+1
+	if(  (nrow(  A[[ length(A) ]] ) > 2 ) & batchs == 1 ) { 
+	 	Y <- one.hot(Y) }
+	dZ[[ell]] <- A[[ell+1]] - Y
+	
+	while( ell >= 1 ){
+		
+		dW[[ell]] <- (1/m) * dZ[[ell]] %*% t( A[[ell]] )  
+		dB[[ell]] <- (1/m)*dZ[[ell]] %*% rep(1, m )
+		
+		if( ell > 1) {
+			dZ[[ell-1]] <- t( W[[ell]] ) %*%  dZ[[ell]] *
+			apply( Z[[ell-1]] , c(1,2), derivative ) }
+			ell <- ell - 1 } 
+
+	return( list(dZ = dZ , dB= dB , dW=dW ) ) }
+ 
+
+
+
+bk.prop.bsm <-  function( X, Y, L, W, B,  Z , A,  Act    ){
+
+	if( Act == "relu" ){ derivative <- drelu 
+	} else if ( Act== "tanh" ) {   derivative <- dtanh 
+	} else { derivative <- dsigmoid }	
+
+	m <- ncol( ( Y ))
+	dZ <- dW <- dB <- list()
+	A[[length(A)+1]] <- X
+	A <- A[ c(length(A), 1:(length(A)-1) ) ]
+
+ 	ell <- L+1
+	dZ[[ell]] <- A[[ell+1]] - Y
+	while( ell >= 1 ){
+		
+		dW[[ell]] <- (1/m) * dZ[[ell]] %*% t( A[[ell]] )  
+		dB[[ell]] <- (1/m)*dZ[[ell]] %*% rep(1, m )
+		
+		if( ell > 1) {
+			dZ[[ell-1]] <- t( W[[ell]] ) %*%  dZ[[ell]] *
+			apply( Z[[ell-1]] , c(1,2), drelu ) }
+			ell <- ell - 1 } 
+
+	return( list(dZ = dZ , dB= dB , dW=dW ) ) }
+ 
+
+
+
+nnet.Predict <- function( OP, X,  Y , HL, W, B, Activation, Fp = 1,
+	Bat = 1  ) {
+
+	if( Bat == 1){ 
+		if( OP  == "Sigmoid" ){
+			yhat <- ifelse( Fp > .5 , 1 , 0 )
+			return( sum( 1*(yhat == y) ) / length(as.vector(y)) )
+		} else { "?" } 
+	}else {
+	 if( OP  == "Sigmoid" ){
+		yhat <- fwd.prop( X, HL,  W, B, Activation, Sigmoid)$A[[HL+1]] 
+		yhat <- ifelse( yhat == 1 , yhat - 1e-15 , yhat )
+		yhat <- ifelse( yhat == 0 , yhat + 1e-15 , yhat )
+		yhat <- ifelse( yhat > .5 , 1 , 0 )
+		sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
+	 } else if ( OP == "stable.softmax" ){ 0
+		#Classes  <-  sort(unique(as.vector(Y)))
+ 		#yhat <- Classes[apply( fwd.prop( X , b , w, Activation, 
+		#	stable.softmax ),	2 , function( M ) which( M == max(M)))]  
+		#sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
+ 	} else { print("?") } }
+}
+
