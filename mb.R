@@ -7,8 +7,9 @@ spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
 y <- as.numeric(spirals$classes) - 1
 x <- t(spirals$x )
 
-fit <- nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, 3, 
-	Activation = sigmoid, Output = Sigmoid); beep("coin")
+fit <- 
+nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, 3, 
+	Activation = sigmoid, Output = Sigmoid, 32); beep("coin")
 
 nnet1.fit( x, y, 1, 15, 50 ,  MaxLR = 1,
  Activation = relu,   Output = Identity )

@@ -586,8 +586,8 @@ bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act    ){
 
  
  
-nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
-		 Activation  ,   Output  ){
+nnet1.fit.batch <- function( X, Y, HL, Batches = 1, nodes, Nsim ,  MaxLR = 1,
+		 Activation  ,   Output , Batsize = 0  ){
 
 	LR <- MaxLR
 	WB <- init.wgt( HL, nodes , X, Outpt ) 
@@ -614,6 +614,9 @@ nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
 	C2 <- 100; sm <- .001; Perf <- rep(NA, Nsim) 
 	if(Outpt == "stable.softmax"){ OH <- one.hot(Y)  }
 
+	if( Batsize > 0 ){ BS <- matrix( 0 , nrow = Batsize, 
+		ncol = ceiling(M/Batsize )); Batches = ncol(BS)}
+ 
 	ST <-system.time( 
 	for( i in 1:Nsim ) {
 
@@ -623,8 +626,8 @@ nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
 		if (  Outpt == "stable.softmax") { 
 			Yt[[k]] <- OH[  , BS[   BS[,k] > 0 , k ] ] } else { 
 			Yt[[k]] <-  Y[ BS[   BS[,k] > 0 , k ]  ] } }
- #})
- #return( list( xt = Xt , yt = Yt )) }
+  #})
+  #return( list( xt = Xt , yt = Yt , m=M )) }
 
 	for( v in 1:length(Xt) ){
 		

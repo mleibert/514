@@ -62,6 +62,7 @@ Y=matrix(as.integer(data$classes)-1,nrow=1)
 print.fun('cost.squared.error')
 print.fun('cost.negll')
 print.fun('cost.cross.entropy')
+
 ```
 
 **Step 3 Implement 3 output activation functions**
@@ -74,6 +75,7 @@ print.fun('cost.cross.entropy')
 print.fun('identity')
 print.fun('sigmoid')
 print.fun('stable.softmax')
+
 ```
 
 
@@ -117,6 +119,7 @@ print.fun('dtanh')
 ```{r}
 print.fun('fwd.prop')
 print.fun('bk.prop')
+
 ```
 
 **Step 5b Numerically check gradients**
@@ -195,44 +198,40 @@ Fit 3 linear models (squared error) to the Lawrence/Giles data with 2, 5 and 100
 
 For our runs we used 150,000 iterations with a learning rate of .1. Feel free to experiment with other parameters and other activation functions.
 
+```{r}
+c(x,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
+```
+
+
+```{r, cache = T}
+fit.LG1 <- nnet1.fit( x, y, 1 , 2 , 150000, 1.5,   tanh,  Identity );  #beep("coin") 
+```
+
+
+```{r LG2, cache = T }
+fit.LG2 <- nnet1.fit( x, y, 1 , 5 , 150000, 1.5,   tanh,  Identity );  #beep("coin") 
+```
+
+```{r LG3, cache = T }
+fit.LG3 <- nnet1.fit( x, y, 1 , 100 , 150000, 1.5,   tanh,  Identity );  #beep("coin") 
+```
+
 
 ```{r}
+np=length(x)
 
-  c(x,y,xgrid,ygrid) %<-% data.lawrence.giles(12345)
-  
-  np=length(X)
- 
-x.set=c(X)
-y.set=c(Y)
+x.set=c(x)
+y.set=c(y)
 degree=15  
 lm.fit = lm(y ~ poly(x,degree,raw=FALSE), data=data.frame(y=y.set,x=x.set))
-#y = predict.lm(lm.fit,data.frame(x=xgrid))
-#points(xgrid,y,type="l",col="black",lwd=2)
+yh = predict.lm(lm.fit,data.frame(x=xgrid))
+plot(x.set, y.set, type='p', col='blue', 	pch=19, ylim=c(-3,3), main='Linear Fit by N.Hid')
+points(xgrid,yh,type="l",col="#f4a582",lwd=2)
 #legend("topright", legend = c(num_hidden,paste("degree=",degree)), col = colors,lwd=2 )
- 
-```
+points( x, as.vector(fit.LG1$yhat) , type = "l", lwd=2 , col = '#7fc97f') 
+points( x, as.vector(fit.LG2$yhat) , type = "l", lwd=2 , col = '#b2182b') 
+points( x, as.vector(fit.LG3$yhat) , type = "l", lwd=2 , col = '#2166ac') 
 
-
-```{r, cache = T}
-fit.LG1 <- nnet1.fit( x, y, 1 , 2 , 150000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
-plot(as.vector(y))
-lines(as.vector(fit.LG1$yhat ))
-```
-
-
-```{r, cache = T}
-fit.LG2 <- `( x, y, 1 , 5 , 30000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
-plot(as.vector(y))
-lines(as.vector(fit.LG2$yhat ))
-```
-
-
-```{r, cache = T}
-fit.LG3 <- nnet1.fit( x, y, 1 , 100 , 60000, 1.5, 1.5, Activation = tanh, Output = Identity );  #beep("coin") 
-```
-```{r}
-plot(as.vector(y))
-lines(as.vector(fit.LG3$yhat ))
 ```
 
 
@@ -248,43 +247,39 @@ Train a neural net to predict binary classes for the mlbench.spirals data introd
 - look at the decision boundary, cost history and performance history of relu with 100 hidden units and sigmoid models with 100 hidden units with a learning rate of 3.  You will notice that relu model converges faster with fewer hidden units than relu
 
 ```{r}
-
 spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
-
 y <- as.numeric(spirals$classes) - 1
 x <- t(spirals$x )
-
-
 ```
 
-```{r, cache= T}
-#fit.Sp1 <- nnet1.fit( x, y , 1 , 5 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); #beep("coin")
-```
-
-
-```{r, cache= T}
-fit.sp2 <- nnet1.fit( x, y , 1 , 5 ,  200000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); #beep("coin")
-```
-
-```{r, cache= T}
-fit.sp3 <- nnet1.fit( x, y , 1 , 5 ,  200000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
-```
-
-```{r, cache= T}
-#fit.sp4 <- nnet1.fit( x, y , 1 , 100 ,  100000 ,  .5 ,  .5 ,	Activation = tanh, Output = Sigmoid ); #beep("coin")
+```{r SP1, cache= T }
+fit.sp1 <- nnet1.fit( x, y, 1 , 5 , 100000,  .5,   tanh,  Sigmoid );  #beep("coin") 
 ```
 
 
-```{r, cache= T}
-fit.sp5 <- nnet1.fit( x, y , 1 , 100 ,  200000 ,  .5 ,  .5 ,	Activation = relu, Output = Sigmoid ); #beep("coin")
+```{r SP2, cache= T }
+fit.sp2 <- nnet1.fit( x, y, 1 , 5 , 100000,  .5,   relu,  Sigmoid );  #beep("coin") 
 ```
 
-```{r, cache= T}
-fit.sp6 <- nnet1.fit( x, y , 1 , 100 ,  200000 ,  .5 ,  .5 ,	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
+```{r, cache= T }
+fit.sp3 <- nnet1.fit( x, y, 1 , 5 , 100000, 1.5,   sigmoid,  Sigmoid );  #beep("coin") 
+```
+
+```{r, cache= T }
+fit.sp4 <- nnet1.fit( x, y, 1 , 100 , 100000,  .5,   tanh,  Sigmoid );  #beep("coin") 
 ```
 
 
-```{r}
+```{r, cache= T }
+fit.sp5 <- nnet1.fit( x, y, 1 , 100 , 100000,  .5,   relu,  Sigmoid );  #beep("coin") 
+```
+
+```{r, cache= T }
+fit.sp6 <- nnet1.fit( x, y, 1 , 100 , 100000, 1.5,   sigmoid,  Sigmoid );  #beep("coin") 
+```
+
+
+```{r, eval= F}
 spfit.pred2 <- ifelse( fit.sp2$yhat  > .5 , 1 , 0    )
 sum(( y  ==   as.numeric( spfit.pred2  ) ) * 1 ) / length(y)
 
@@ -294,7 +289,7 @@ sum(( y  ==   as.numeric( spfit.pred3  ) ) * 1 ) / length(y)
 ```
 
 
-```{r}
+```{r, eval= F}
 spfit.pred5 <- ifelse( fit.sp5$yhat  > .5 , 1 , 0    )
 sum(( y  ==   as.numeric( spfit.pred5  ) ) * 1 ) / length(y)
 
@@ -303,13 +298,13 @@ sum(( y  ==   as.numeric( spfit.pred6  ) ) * 1 ) / length(y)
 
 ```
 
-```{r}
+```{r, eval= F}
 
 #fit.sp5 <- nnet1.fit( x, y , 3 , c(25,25) ,  200000 ,  1.5 ,   	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
 
 ```
 
-```{r}
+```{r, eval= F}
 par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
 plot(spirals)
 spiralpred$classes   <- as.factor( spfit.pred2 + 1 )
@@ -332,7 +327,7 @@ Train a neural network on the 60k MNIST training data and measure performance on
 
 -Plot in sample and out of sample performance history of the model
 
-```{r, cache = T}
+```{r, cache = T }
 mtrain <- read.csv("G:\\math\\mnist_train.csv" , header = F)
 x <- unname( mtrain[,-1] )
 x <- t(x)
@@ -340,12 +335,11 @@ x <- x / 255
 y <-  as.matrix( unname(  mtrain[,1] ))
 ```
 
-```{r, cache = T}
-mnist.fit <- nnet1.fit( x, y, 1, 30, 50 ,  MaxLR = .5,
-                 Activation = relu,   Output = stable.softmax ) 
+```{r, cache = T, eval= F}
+mnist.fit <- nnet1.fit( x, y, 1 , 5 , 100000,  .15,   relu,  stable.softmax );  
 ```
 
-```{r}
+```{r }
 yhat.mnist <- ( apply( mnist.fit$yhat , 2 , function( M )  which( M == max(M) ) )  - 1)
 sum( 1 * (yhat.mnist == y ) ) / length(as.vector(y))
 ```
@@ -368,29 +362,37 @@ print.fun('nnet1.fit.batch')
 
 - how does this compare against the full gradient descent neural network model from step 9
 
-```{r batch.sigmoid, cache=T}
-spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
-
-y <- as.numeric(spirals$classes) - 1
-x <- t(spirals$x )
-
-sp.fit.b1 <- nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, .5, 
-	Activation = sigmoid, Output = Sigmoid); beep("coin")
-```
+\ 
 
 ```{r}
+spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
+y <- as.numeric(spirals$classes) - 1
+x <- t(spirals$x )
+```
+
+\ 
+
+```{r batch.sigmoid.1, cache=T,  }
+fit.sig1.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, 3,	Activation = sigmoid, Output = Sigmoid, 32 )
+```
+
+```{r batch.sigmoid.2, cache=T }
+fit.sig2.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, 3,	Activation = sigmoid, Output = Sigmoid, 64 )
+```
+
+```{r, eval= F}
 sp.fit.b1$iter
 tail(sp.fit.b1$performance,1)
 plot(sp.fit.b1$performance, type="l")
 plot(sp.fit.b1$costs, type="l" )
 ```
 
-```{r batch.relu, cache=T }
+```{r batch.relu, cache=T, eval= F }
 sp.fit.b2 <- nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, .5, 
 	Activation = relu, Output = Sigmoid); beep("coin")
 ```
 
-```{r}
+```{r, eval= F}
 sp.fit.b2$iter
 tail(sp.fit.b2$performance,1)
 plot(sp.fit.b2$performance, type="l")
@@ -402,6 +404,17 @@ plot(sp.fit.b2$costs , type="l")
 
 - Train a neural network using nnet1.fit.batch using  a batch size of 30 with learning rate of 0.15 compare out of sample performance of this model against out of sample performance of neural net trained on full gradient descent.  For the mini-batch model use 10 epochs and for the full model use 50
 
+```{r, cache = T }
+mtrain <- read.csv("G:\\math\\mnist_train.csv" , header = F)
+x <- unname( mtrain[,-1] )
+x <- t(x)
+x <- x / 255
+y <-  as.matrix( unname(  mtrain[,1] ))
+```
+
+```{r, cache = T }
+mnist.fit.bat <- nnet1.fit.batch( x  , y , 1 , 2000 ,  100 , 10, .15,	Activation = relu, Output = stable.softmax )
+```
 
 
 ```{r, eval=F}
@@ -444,7 +457,7 @@ lr=.15
 
 - Using minibatch of size 32 and learning rate of 0.15 compare the performance of the model for 5, 10,30 hidden units out of sample
 
-```{r}
+```{r, eval= F}
 lr=.15
 perf=vector(mode='list')
 counter=1
@@ -453,6 +466,9 @@ num_hidden =c(5,10,30)
 
 ```
 
+```{r}
+beep("mario")
+```
 
 
 
