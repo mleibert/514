@@ -514,6 +514,34 @@ nnet1.fit <- function( X, Y, HL, nodes, Nsim ,  MaxLR = 1,
  
 
 
+bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act = relu  ){
+
+	if( Act == "relu" ){ derivative <- drelu 
+	} else if ( Act== "tanh" ) {   derivative <- dtanh 
+	} else { derivative <- dsigmoid }	
+
+	m <- length( as.vector( Y ))
+	dZ <- dW <- dB <- list()
+	A[[length(A)+1]] <- X
+	A <- A[ c(length(A), 1:(length(A)-1) ) ]
+
+ 	ell <- L+1
+	if( nrow(  A[[ length(A) ]]  > 2  )){ Y <- one.hot(Y) }
+	dZ[[ell]] <- A[[ell+1]] - Y
+	
+	while( ell >= 1 ){
+		
+		dW[[ell]] <- (1/m) * dZ[[ell]] %*% t( A[[ell]] )  
+		dB[[ell]] <- (1/m)*dZ[[ell]] %*% rep(1, m )
+		
+		if( ell > 1) {
+			dZ[[ell-1]] <- t( W[[ell]] ) %*%  dZ[[ell]] *
+			apply( Z[[ell-1]] , c(1,2), derivative ) }
+			ell <- ell - 1 } 
+
+	return( list(dZ = dZ , dB= dB , dW=dW ) ) }
+ 
+
 
  
 
