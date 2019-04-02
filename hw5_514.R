@@ -526,7 +526,7 @@ bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act    ){
 	A <- A[ c(length(A), 1:(length(A)-1) ) ]
 
  	ell <- L+1
-	if( nrow(  A[[ length(A) ]]  > 2  )){ Y <- one.hot(Y) }
+	if( nrow(  A[[ length(A) ]] )  > 2){ Y <- one.hot(Y) }
 	dZ[[ell]] <- A[[ell+1]] - Y
 	
 	while( ell >= 1 ){
@@ -618,8 +618,8 @@ nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
 		if (  Outpt == "stable.softmax") { 
 			Yt[[k]] <- OH[  , BS[   BS[,k] > 0 , k ] ] } else { 
 			Yt[[k]] <-  Y[ BS[   BS[,k] > 0 , k ]  ] } }
-#})
-#return( list( xt = Xt , yt = Yt )) }
+ })
+ return( list( xt = Xt , yt = Yt )) }
 
 	for( v in 1:length(Xt) ){
 		
@@ -627,7 +627,7 @@ nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
 		C2 <- Costs[ij] <- Cost(Yt[[v]], FP$A[[ HL+1 ]] , Outpt, Batches )
  		ij <- ij + 1
  		BP  <-  bk.prop(Xt[[v]], Yt[[v]], HL , W, B, FP$Z, FP$A , 
-			Activation, Batches) 	
+			Acts ) #, Batches) 	
  
 	for( j in 1:(HL + 1)  ){
 		B[[j]] <- B[[j]] - (LR) * BP$dB[[j]]
