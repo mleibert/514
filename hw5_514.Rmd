@@ -335,11 +335,12 @@ x <- x / 255
 y <-  as.matrix( unname(  mtrain[,1] ))
 ```
 
-```{r, cache = T, eval= F}
-mnist.fit <- nnet1.fit( x, y, 1 , 5 , 100000,  .15,   relu,  stable.softmax );  
+```{r, cache = T}
+mnist.fit <- nnet1.fit( x, y, 1 , 30 , 50,  .15,   relu,  stable.softmax );  
 ```
 
-```{r, eval = F}
+```{r, cache = T}
+names(mnist.fit)
 yhat.mnist <- ( apply( mnist.fit$yhat , 2 , function( M )  which( M == max(M) ) )  - 1)
 sum( 1 * (yhat.mnist == y ) ) / length(as.vector(y))
 ```
@@ -416,6 +417,13 @@ y <-  as.matrix( unname(  mtrain[,1] ))
 mnist.fit.bat <- nnet1.fit.batch( x  , y , 1 , 2000 ,  100 , 10, .15,	Activation = relu, Output = stable.softmax )
 ```
 
+```{r, cache=T}
+yhat <- fwd.prop( x  , 1 , mnist.fit.bat$W,  mnist.fit.bat$B, relu, stable.softmax)
+yhat <- yhat$A[[2]]
+Classes  <-  sort(unique(as.vector(y)))
+yhat <- Classes[apply(yhat , 2 , function( M ) which( M == max(M) ) ) ] 	 
+sum((yhat == y)) / length(y)
+```
 
 ```{r, eval=F}
 
