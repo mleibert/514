@@ -526,7 +526,7 @@ bk.prop <-  function( X, Y, L, W, B,  Z , A,  Act    ){
 	A <- A[ c(length(A), 1:(length(A)-1) ) ]
 
  	ell <- L+1
-	if( nrow(  A[[ length(A) ]] )  > 2){ Y <- one.hot(Y) }
+	if(  nrow(  A[[ length(A) ]] ) > 2 ){ Y <- one.hot(Y) }
 	dZ[[ell]] <- A[[ell+1]] - Y
 	
 	while( ell >= 1 ){
