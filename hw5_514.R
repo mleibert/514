@@ -618,8 +618,8 @@ nnet1.fit.batch <- function( X, Y, HL, Batches, nodes, Nsim ,  MaxLR = 1,
 		if (  Outpt == "stable.softmax") { 
 			Yt[[k]] <- OH[  , BS[   BS[,k] > 0 , k ] ] } else { 
 			Yt[[k]] <-  Y[ BS[   BS[,k] > 0 , k ]  ] } }
- })
- return( list( xt = Xt , yt = Yt )) }
+ #})
+ #return( list( xt = Xt , yt = Yt )) }
 
 	for( v in 1:length(Xt) ){
 		
