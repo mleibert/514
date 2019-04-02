@@ -357,7 +357,7 @@ dsigmoid <- function(X){ sigmoid(X) * (1-sigmoid(X) ) }
  
  
 
-init.wgt <- function( layers , nodes , X, Y, d = .01, outp = "Sigmoid" ) {
+init.wgt <- function( layers , nodes , X, Y, outp = "Sigmoid", d = .01 ) {
 	W <- B <- list()
 	LN <- ifelse( outp != "stable.softmax", 
 		1 ,	length(as.vector(  unique( y ) ) ) )
