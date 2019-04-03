@@ -246,7 +246,7 @@ Train a neural net to predict binary classes for the mlbench.spirals data introd
 
 - look at the decision boundary, cost history and performance history of relu with 100 hidden units and sigmoid models with 100 hidden units with a learning rate of 3.  You will notice that relu model converges faster with fewer hidden units than relu
 
-```{r}
+```{r spirals1}
 spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
 y <- as.numeric(spirals$classes) - 1
 x <- t(spirals$x )
@@ -289,10 +289,6 @@ sum(( y  ==   as.numeric( spfit.pred2  ) ) * 1 ) / length(y)
 spfit.pred3 <- ifelse( fit.sp3$yhat  > .5 , 1 , 0    )
 sum(( y  ==   as.numeric( spfit.pred3  ) ) * 1 ) / length(y)
 
-```
-
-
-```{r }
 spfit.pred4 <- ifelse( fit.sp4$yhat  > .5 , 1 , 0    )
 sum(( y  ==   as.numeric( spfit.pred4  ) ) * 1 ) / length(y)
 
@@ -304,10 +300,30 @@ sum(( y  ==   as.numeric( spfit.pred6  ) ) * 1 ) / length(y)
 
 ```
 
-```{r, eval= F}
+```{r }
+spfit.pred1 <- ifelse( fit.sp1$yhat  > .5 , 1 , 0    )
+spfit.pred1 <- sum(( y  ==   as.numeric( spfit.pred1  ) ) * 1 ) / length(y)
 
-#fit.sp5 <- nnet1.fit( x, y , 3 , c(25,25) ,  200000 ,  1.5 ,   	Activation = sigmoid, Output = Sigmoid ); #beep("coin")
+spfit.pred2 <- ifelse( fit.sp2$yhat  > .5 , 1 , 0    )
+spfit.pred2 <- sum(( y  ==   as.numeric( spfit.pred2  ) ) * 1 ) / length(y)
 
+spfit.pred3 <- ifelse( fit.sp3$yhat  > .5 , 1 , 0    )
+spfit.pred3 <- sum(( y  ==   as.numeric( spfit.pred3  ) ) * 1 ) / length(y)
+
+spfit.pred4 <- ifelse( fit.sp4$yhat  > .5 , 1 , 0    )
+spfit.pred4 <- sum(( y  ==   as.numeric( spfit.pred4  ) ) * 1 ) / length(y)
+
+spfit.pred5 <- ifelse( fit.sp5$yhat  > .5 , 1 , 0    )
+spfit.pred5 <- sum(( y  ==   as.numeric( spfit.pred5  ) ) * 1 ) / length(y)
+
+spfit.pred6 <- ifelse( fit.sp6$yhat  > .5 , 1 , 0    )
+spfit.pred6 <- sum(( y  ==   as.numeric( spfit.pred6  ) ) * 1 ) / length(y)
+
+
+sigperf <- data.frame( rep(c("tanh","relu","sigmoid"),2) , c(rep(5,3), rep(100,3)  ) , rep(c(.5,.5,3),2) , 
+  c(spfit.pred1,spfit.pred2,spfit.pred3,spfit.pred4,spfit.pred5,spfit.pred6))
+colnames(sigperf) <- c("activation", "nodes", "learning rate", "accuracy")
+sigperf
 ```
 
 ```{r, eval= F}
@@ -371,7 +387,7 @@ print.fun('nnet1.fit.batch')
 
 \ 
 
-```{r}
+```{r spirals}
 spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
 y <- as.numeric(spirals$classes) - 1
 x <- t(spirals$x )
@@ -432,7 +448,7 @@ sum((yhat == y)) / length(y)
 ```
 
 
-```{r, cache=T}
+```{r mtest, cache=T}
 mtest <- read.csv("G:\\math\\mnist_test.csv" , header = F)
 nx <- unname( mtest[,-1] )
 nx <- t(nx)
@@ -477,9 +493,6 @@ M = ncol(X)  # number of samples
 nh=30
 lr=.15
 
-
-```
-```{r}
 
 ```
 
