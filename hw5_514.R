@@ -808,11 +808,11 @@ nnet.Predict <- function( OP, X,  Y , HL, W, B, Activation, Fp = 1,
 		yhat <- ifelse( yhat == 0 , yhat + 1e-15 , yhat )
 		yhat <- ifelse( yhat > .5 , 1 , 0 )
 		sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
-	 } else if ( OP == "stable.softmax" ){ 0
-		#Classes  <-  sort(unique(as.vector(Y)))
- 		#yhat <- Classes[apply( fwd.prop( X , b , w, Activation, 
-		#	stable.softmax ),	2 , function( M ) which( M == max(M)))]  
-		#sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
+	 } else if ( OP == "stable.softmax" ){  
+		Classes  <-  sort(unique(as.vector(Y)))
+ 		yhat <- Classes[apply( fwd.prop( X , b , w, Activation, 
+			stable.softmax ),	2 , function( M ) which( M == max(M)))]  
+		sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
  	} else { print("?") } }
 }
 

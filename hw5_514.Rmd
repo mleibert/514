@@ -343,6 +343,86 @@ points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
 
 ```
 
+\ 
+
+```{r spplots, echo=F, fig.height = 9, fig.width = 6, fig.align = "center"}
+
+
+par(oma=rep(.1,4), fin = c(8 , 11   )   )
+layout(matrix(1:6,ncol=2,byrow=T) ) 
+par(mar=c(1,1,1,1)*2 )  
+
+
+S <- seq( -1.5 , 1.5, .1/2)
+plot(spirals, pch = 16)
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp1$W, fit.sp1$B, tanh, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+plot(spirals, pch = 16)
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp2$W, fit.sp2$B, relu, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+plot(spirals, pch = 16)
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp3$W, fit.sp3$B, sigmoid, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+plot(spirals, pch = 16)
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp4$W, fit.sp4$B, tanh, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+plot(spirals, pch = 16)
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp5$W, fit.sp5$B, relu, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+plot(spirals, pch = 16)
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp6$W, fit.sp6$B, sigmoid, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+```
+
+\ 
+
 **Step 9 Train a softmax model on MNIST data**
 
 Train a neural network on the 60k MNIST training data and measure performance on test set using cross-entropy cost function and relu activation. Look at performance and plot of performance history.  Use a learning rate of 0.15 and 30 hidden units and 50 epochs.
@@ -361,10 +441,13 @@ y <-  as.matrix( unname(  mtrain[,1] ))
 mnist.fit <- nnet1.fit( x, y, 1 , 30 , 50,  .15,   relu,  stable.softmax );  
 ```
 
+
 ```{r, cache = T}
 names(mnist.fit)
 yhat.mnist <- ( apply( mnist.fit$yhat , 2 , function( M )  which( M == max(M) ) )  - 1)
 sum( 1 * (yhat.mnist == y ) ) / length(as.vector(y))
+plot(mnist.fit$costs)
+str(mnist.fit$perf)
 ```
 
 
@@ -396,18 +479,17 @@ x <- t(spirals$x )
 \ 
 
 ```{r batch.sigmoid.1, cache=T,  }
-fit.sp1.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, 3,	Activation = sigmoid, Output = Sigmoid, 32 )
+fit.sp1.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, 3,	Activation = tanh, Output = Sigmoid, 32 )
 ```
 
 ```{r batch.sigmoid.2, cache=T }
 fit.sp2.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, 3,	Activation = sigmoid, Output = Sigmoid, 64 )
 ```
 
-```{r, eval= F}
-sp.fit.b1$iter
-tail(sp.fit.b1$performance,1)
-plot(sp.fit.b1$performance, type="l")
-plot(sp.fit.b1$costs, type="l" )
+```{r, eval= T}
+fit.sp1.b$iter
+plot(fit.sp1.b$performance, type="l")
+#plot(fit.sp1.b$costs, type="l" )
 ```
 
 ```{r batch.relu, cache=T, eval= F }
