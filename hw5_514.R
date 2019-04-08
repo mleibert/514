@@ -274,7 +274,7 @@ cost.squared.error <- function(X,Y,b,w){
 
 cost.negll <- function(X,Y,B,W){
 	yhat <- Sigmoid( X ,B,W )
-	M = length(as.vector(y))
+	M = length(as.vector(Y))
 	(-1/M)*sum( ( Y * log( yhat ) ) +  ( (1-Y) * log( 1- yhat ) ) )}
 
 
@@ -360,7 +360,7 @@ dsigmoid <- function(X){ sigmoid(X) * (1-sigmoid(X) ) }
 init.wgt <- function( layers , nodes , X, Y, outp = "Sigmoid", d = .01 ) {
 	W <- B <- list()
 	LN <- ifelse( outp != "stable.softmax", 
-		1 ,	length(unique(  as.vector( y ) ) )  )
+		1 ,	length(unique(  as.vector( Y ) ) )  )
 	node <- c( dim(X)[1] , nodes, LN )
 	for( i in 1:(layers+1) ){
 		W[[i]] <- d*matrix(rnorm(node[i]*node[i+1],.1),
@@ -634,7 +634,7 @@ nnet1.fit.batch <- function( X, Y, HL, Batches = 1, nodes, Nsim ,  MaxLR = 1,
 		B[[j]] <- B[[j]] - (LR) * BP$dB[[j]]
 		W[[j]] <- W[[j]] - (LR) * BP$dW[[j]] }
 	}
-	Perf[i] <- nnet.Predict(Outpt , X, Y, HL, W, B, Activation) 
+	Perf[i] <- nnet.Predict(Outpt , X, Y, HL, W, B, Activation, Bat = 2) 
 	if( Perf[i] == 1) {break}
 	})  	
 	return( list( performance = Perf[!is.na(Perf)], 
@@ -655,7 +655,7 @@ nnet.Predict <- function( OP, X, Y , HL, W, B, Activation  ) {
 		sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
 	 } else if ( OP == "stable.softmax" ){ 0
 		#Classes  <-  sort(unique(as.vector(Y)))
- 		#yhat <- Classes[apply( fwd.prop( X , b , w, Activation, 
+ 		#yhat <- Classes[apply( fwd.prop( X , B , W, Activation, 
 		#	stable.softmax ),	2 , function( M ) which( M == max(M)))]  
 		#sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
  	} else { print("?") }
@@ -795,12 +795,16 @@ bk.prop.bsm <-  function( X, Y, L, W, B,  Z , A,  Act    ){
 
 nnet.Predict <- function( OP, X,  Y , HL, W, B, Activation, Fp = 1,
 	Bat = 1  ) {
-
 	if( Bat == 1){ 
 		if( OP  == "Sigmoid" ){
 			yhat <- ifelse( Fp > .5 , 1 , 0 )
-			return( sum( 1*(yhat == y) ) / length(as.vector(y)) )
-		} else { "?" } 
+			return( sum( 1*(yhat == Y) ) / length(as.vector(Y)) )
+		} else { 
+		Classes  <-  sort(unique(as.vector(Y)))
+		yhat <- Classes[apply(Fp, 2 , function( M ) 
+		which( M == max(M))) ]   
+		sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
+	 } 
 	}else {
 	 if( OP  == "Sigmoid" ){
 		yhat <- fwd.prop( X, HL,  W, B, Activation, Sigmoid)$A[[HL+1]] 
@@ -810,8 +814,9 @@ nnet.Predict <- function( OP, X,  Y , HL, W, B, Activation, Fp = 1,
 		sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
 	 } else if ( OP == "stable.softmax" ){  
 		Classes  <-  sort(unique(as.vector(Y)))
- 		yhat <- Classes[apply( fwd.prop( X , b , w, Activation, 
-			stable.softmax ),	2 , function( M ) which( M == max(M)))]  
+		yhat <- fwd.prop( X , HL, W, B, relu, stable.softmax )
+ 		yhat <- Classes[apply( yhat$A[[HL+1]], 2 , function( M ) 
+				which( M == max(M))) ]   
 		sum( ( Y == yhat )*1 ) / length( as.vector( Y ) )
  	} else { print("?") } }
 }

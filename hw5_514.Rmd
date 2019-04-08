@@ -181,11 +181,13 @@ You will code two training algorithms. The first will do simple gradient descent
 
 For training of your neural net the weights and bias are initialized. The init.wgts function is provided in the R file. Feel free to write a more general function that allows experimentation with different types of bias/weight initialization
 
+\ 
+
 ```{r}
 
-print.fun('init.wgts')
+print.fun('init.wgt')
 # call init.wgts - data samples are arranged by column
-model=init.wgts(n.in=nrow(X),n.hid=1,n.out=nrow(Y))
+# model=init.wgts(n.in=nrow(X),n.hid=1,n.out=nrow(Y))
 
 print.fun('nnet1.fit')
 
@@ -225,7 +227,7 @@ y.set=c(y)
 degree=15  
 lm.fit = lm(y ~ poly(x,degree,raw=FALSE), data=data.frame(y=y.set,x=x.set))
 yh = predict.lm(lm.fit,data.frame(x=xgrid))
-plot(x.set, y.set, type='p', col='blue', 	pch=19, ylim=c(-3,3), main='Linear Fit by N.Hid')
+plot(x.set, y.set, type='p', col='blue', 	pch=19, ylim=c(-3,3))
 points(xgrid,yh,type="l",col="#f4a582",lwd=2)
 #legend("topright", legend = c(num_hidden,paste("degree=",degree)), col = colors,lwd=2 )
 points( x, as.vector(fit.LG1$yhat) , type = "l", lwd=2 , col = '#7fc97f') 
@@ -245,6 +247,8 @@ Train a neural net to predict binary classes for the mlbench.spirals data introd
 - Plot the performance histories of all 6 model combinations in one plot
 
 - look at the decision boundary, cost history and performance history of relu with 100 hidden units and sigmoid models with 100 hidden units with a learning rate of 3.  You will notice that relu model converges faster with fewer hidden units than relu
+
+\ 
 
 ```{r spirals1}
 spirals <- spiralpred <- mlbench.spirals(75,1.5,.07)
@@ -278,29 +282,20 @@ fit.sp5 <- nnet1.fit( x, y, 1 , 100 , 100000,  .5,   relu,  Sigmoid );  #beep("c
 fit.sp6 <- nnet1.fit( x, y, 1 , 100 , 100000, 3,   sigmoid,  Sigmoid );  #beep("coin") 
 ```
 
-
-```{r }
-spfit.pred1 <- ifelse( fit.sp1$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred1  ) ) * 1 ) / length(y)
-
-spfit.pred2 <- ifelse( fit.sp2$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred2  ) ) * 1 ) / length(y)
-
-spfit.pred3 <- ifelse( fit.sp3$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred3  ) ) * 1 ) / length(y)
-
-spfit.pred4 <- ifelse( fit.sp4$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred4  ) ) * 1 ) / length(y)
-
-spfit.pred5 <- ifelse( fit.sp5$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred5  ) ) * 1 ) / length(y)
-
-spfit.pred6 <- ifelse( fit.sp6$yhat  > .5 , 1 , 0    )
-sum(( y  ==   as.numeric( spfit.pred6  ) ) * 1 ) / length(y)
-
+```{r}
+par(  mar=c(2.1,2.1,2.1,2.1) )
+plot( fit.sp1$perf , type = "l", ylim = c(0.45,1.01), col = "red")
+legend("bottomright", legend=paste0(rep( c( "tanh", "relu","sigmoid" ) , 2), ".", c(rep(5,3),rep(100,3))),
+       col=c("red", "black", "green","blue","purple","gold"), lty=1, cex=0.8)
+points( fit.sp2$perf , type = "l", col = "black")
+points( fit.sp3$perf , type = "l", col = "green")
+points( fit.sp4$perf , type = "l",  col = "blue")
+points( fit.sp5$perf , type = "l",  col = "purple")
+points( fit.sp6$perf , type = "l", col = "gold")
 ```
 
-```{r }
+
+```{r , echo = F}
 spfit.pred1 <- ifelse( fit.sp1$yhat  > .5 , 1 , 0    )
 spfit.pred1 <- sum(( y  ==   as.numeric( spfit.pred1  ) ) * 1 ) / length(y)
 
@@ -326,7 +321,7 @@ colnames(sigperf) <- c("activation", "nodes", "learning rate", "accuracy")
 sigperf
 ```
 
-```{r, eval= F}
+```{r, echo = F, eval= F}
 par(mfrow=c(2,2) , mar=c(2.1,2.1,2.1,2.1) )
 plot(spirals)
 spiralpred$classes   <- as.factor( spfit.pred2 + 1 )
@@ -345,7 +340,7 @@ points( spiralpred$x , col = spiralpred$classes    , pch = 3 )
 
 \ 
 
-```{r spplots, echo=F, fig.height = 9, fig.width = 6, fig.align = "center"}
+```{r spplots, cache = T, echo=F, fig.height = 9, fig.width = 6, fig.align = "center", eval = F}
 
 
 par(oma=rep(.1,4), fin = c(8 , 11   )   )
@@ -421,6 +416,47 @@ for( j in 1:length(S)){
 }}
 ```
 
+
+```{r, fig.height = 9, fig.width = 6, echo = F}
+par(mfrow=c(3,1),mar=c(1,1,1,1)*2.4 )  
+
+S <- seq( -1.5 , 1.5, .1/2)
+
+plot(spirals, pch = 16, main = "tanh, 100 nodes")
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp4$W, fit.sp4$B, tanh, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+plot(spirals, pch = 16, main = "relu, 100 nodes")
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp5$W, fit.sp5$B, relu, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+plot(spirals, pch = 16, main = "sigmoid, 100 nodes")
+
+for( i in 1:length(S)){
+for( j in 1:length(S)){
+
+	Yhat <- fwd.prop( as.matrix(c(S[i],S[j])) , 1 , 
+		fit.sp6$W, fit.sp6$B, sigmoid, Sigmoid)$A[[2]]
+	points( S[i] , S[j], col =  ifelse( Yhat > .5 , 1 , 0 ) + 1,
+	 pch = 3 )
+}}
+
+```
+
 \ 
 
 **Step 9 Train a softmax model on MNIST data**
@@ -428,6 +464,8 @@ for( j in 1:length(S)){
 Train a neural network on the 60k MNIST training data and measure performance on test set using cross-entropy cost function and relu activation. Look at performance and plot of performance history.  Use a learning rate of 0.15 and 30 hidden units and 50 epochs.
 
 -Plot in sample and out of sample performance history of the model
+
+\ 
 
 ```{r, cache = T }
 mtrain <- read.csv("G:\\math\\mnist_train.csv" , header = F)
@@ -438,18 +476,33 @@ y <-  as.matrix( unname(  mtrain[,1] ))
 ```
 
 ```{r, cache = T}
-mnist.fit <- nnet1.fit( x, y, 1 , 30 , 50,  .15,   relu,  stable.softmax );  
+mnist.fit <- nnet1.fit( x, y, 1 , 30 , 50,  .15, relu,  stable.softmax );  
 ```
 
 
-```{r, cache = T}
-names(mnist.fit)
+```{r}
 yhat.mnist <- ( apply( mnist.fit$yhat , 2 , function( M )  which( M == max(M) ) )  - 1)
 sum( 1 * (yhat.mnist == y ) ) / length(as.vector(y))
 plot(mnist.fit$costs)
-str(mnist.fit$perf)
+plot(mnist.fit$perf)
 ```
 
+```{r mtest1, cache=T}
+mtest <- read.csv("G:\\math\\mnist_test.csv" , header = F)
+nx <- unname( mtest[,-1] )
+nx <- t(nx)
+nx <- nx / 255
+ny <-  as.matrix( unname(  mtest[,1] ))
+```
+
+
+```{r mntest}
+yhat <- fwd.prop( nx , 1 , mnist.fit$W, mnist.fit$B, relu, stable.softmax)
+yhat <- yhat$A[[2]]
+classes <- sort(unique(as.vector(y)))
+yhat <- classes[apply(yhat , 2 , function( M ) which( M == max(M) ) ) ]
+sum((yhat == ny)) / length(ny)
+```
 
 **Step 10 Implement a mini-batch gradient descent training algorithm**
 
@@ -479,54 +532,58 @@ x <- t(spirals$x )
 \ 
 
 ```{r batch.sigmoid.1, cache=T,  }
-fit.sp1.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, 3,	Activation = tanh, Output = Sigmoid, 32 )
+fit.sp1.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, .8,	Activation = relu, Output = Sigmoid, 32 )
 ```
 
 ```{r batch.sigmoid.2, cache=T }
-fit.sp2.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, 3,	Activation = sigmoid, Output = Sigmoid, 64 )
+fit.sp2.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, .8,	Activation = relu, 
+                          Output = Sigmoid, 64 )
 ```
 
-```{r, eval= T}
-fit.sp1.b$iter
-plot(fit.sp1.b$performance, type="l")
-#plot(fit.sp1.b$costs, type="l" )
+```{r batch.sigmoid.3, cache=T }
+fit.sp3.b <- nnet1.fit.batch( x  , y , 1 , 3 ,  100 , 1500, .8,	Activation = relu, 
+                          Output = Sigmoid, 75 )
 ```
 
-```{r batch.relu, cache=T, eval= F }
-sp.fit.b2 <- nnet1.fit.batch( x  , y , 1 , 3 ,  35, 50000, .5, 
-	Activation = relu, Output = Sigmoid); beep("coin")
+
+```{r costperf, fig.height = 7, fig.width = 6, echo = F}
+par(mfrow=c(3,2),mar=c(1,1,1,1)*2.4 )  
+plot( fit.sp1.b$perf, main="Performance, batch size 32", type ="l")
+plot( fit.sp1.b$cost, main="Cost, batch size 32", type ="l")
+plot( fit.sp2.b$perf, main='Performance, batch size 64', type ="l")
+plot( fit.sp2.b$cost, main='Cost, batch size 64', type ="l")
+plot( fit.sp3.b$perf, main='Performance, batch size 75', type ="l")
+plot( fit.sp3.b$cost, main='Cost, batch size 75', type ="l")
 ```
 
-```{r, eval= F}
-sp.fit.b2$iter
-tail(sp.fit.b2$performance,1)
-plot(sp.fit.b2$performance, type="l")
-plot(sp.fit.b2$costs , type="l")
-```
+\ 
 
+The mini-batch takes much less time to obtain 100\% accuracy vs the full batch.
+
+\ 
 
 ** Step 12 train using mini-batch gradient descent on MNIST**
 
 - Train a neural network using nnet1.fit.batch using  a batch size of 30 with learning rate of 0.15 compare out of sample performance of this model against out of sample performance of neural net trained on full gradient descent.  For the mini-batch model use 10 epochs and for the full model use 50
 
-```{r, cache = T }
+```{r,cache=T}
 mtrain <- read.csv("G:\\math\\mnist_train.csv" , header = F)
-x <- unname( mtrain[,-1] )
-x <- t(x)
-x <- x / 255
-y <-  as.matrix( unname(  mtrain[,1] ))
+mx <- unname( mtrain[,-1] )
+mx <- t(mx)
+mx <- mx / 255
+my <-  as.matrix( unname(  mtrain[,1] ))
 ```
 
-```{r, cache = T }
-mnist.fit.bat <- nnet1.fit.batch( x  , y , 1 , 2000 ,  100 , 10, .15,	Activation = relu, Output = stable.softmax )
+```{r jfc,cache=T}
+mnist.fit.bat <- nnet1.fit.batch( mx  , my , 1 , Batches = 2000 ,  100 , 10, .15,	 relu,  stable.softmax )
 ```
 
 ```{r, cache=T}
-yhat <- fwd.prop( x  , 1 , mnist.fit.bat$W,  mnist.fit.bat$B, relu, stable.softmax)
+yhat <- fwd.prop( mx  , 1 , mnist.fit.bat$W,  mnist.fit.bat$B, relu, stable.softmax)
 yhat <- yhat$A[[2]]
-Classes  <-  sort(unique(as.vector(y)))
+Classes  <-  sort(unique(as.vector(my)))
 yhat <- Classes[apply(yhat , 2 , function( M ) which( M == max(M) ) ) ] 	 
-sum((yhat == y)) / length(y)
+sum((yhat == my)) / length(my)
 ```
 
 
@@ -545,52 +602,49 @@ yhat1 <- Classes[apply(yhat1 , 2 , function( M ) which( M == max(M) ) ) ]
 sum((yhat1 == ny)) / length(ny)
 ```
 
-
-```{r, eval=F}
-
-
-
-#mnist = list(train=load_image_file("train-images-idx3-ubyte"),test=load_image_file("t10k-images-idx3-ubyte"))
-#mnist[["train"]]$y = load_label_file("train-labels-idx1-ubyte")
-#mnist[["test"]]$y = load_label_file("t10k-labels-idx1-ubyte")  
-
-
-train_set=sample(1:dim(mnist$train$x)[1], size = 60000)
-X=t(mnist[["train"]]$x[train_set,])/255.
-y=mnist[["train"]]$y[train_set]
-Y=one.hot(y)
-
-testX=t(mnist[["test"]]$x)/255.
-testY=mnist[["test"]]$y
-
-M=ncol(X)
-b=numeric(10)
-w=matrix(rnorm(10*784),nrow=10,ncol=784)
-
-n = nrow(X)  # number of input nodes
-n.out = nrow(Y)
-M = ncol(X)  # number of samples
-
-# it would be nice to add split cost/accuracy plot
-nh=30
-lr=.15
-
-
-```
+\ 
 
 
 **Step 13 Compare impact of hidden units on mini-batch**
 
 - Using minibatch of size 32 and learning rate of 0.15 compare the performance of the model for 5, 10,30 hidden units out of sample
 
-```{r, eval= F}
-lr=.15
-perf=vector(mode='list')
-counter=1
-num_hidden =c(5,10,30)
-
-
+```{r step13, cache = T}
+mnist.fit.5 <- nnet1.fit.batch( mx  , my , 1 , 2000 ,  5 , 10, .15,	Activation = relu, Output = stable.softmax , 32)
 ```
+
+```{r, cache = T}
+mnist.fit.10 <- nnet1.fit.batch( mx  , my , 1 , 2000 ,  10 , 10, .15,	Activation = relu, Output = stable.softmax, 32 )
+```
+
+```{r, cache = T}
+mnist.fit.30 <- nnet1.fit.batch( mx  , my , 1 , 2000 ,  30 , 10, .15,	Activation = relu, Output = stable.softmax, 32 )
+```
+
+```{r, echo = F }
+Classes  <-  sort(unique(as.vector(ny)))
+yhat1 <- fwd.prop( nx  , 1 , mnist.fit.5$W,  mnist.fit.5$B, 
+relu, stable.softmax)
+yhat1 <- yhat1$A[[2]]
+yhat1 <- Classes[apply(yhat1 , 2 , function( M ) which( M == max(M) ) ) ] 	
+yh1 <- sum((yhat1 == ny)) / length(ny)
+
+yhat1 <- fwd.prop( nx  , 1 , mnist.fit.10$W,  mnist.fit.10$B, 
+relu, stable.softmax)
+yhat1 <- yhat1$A[[2]]
+yhat1 <- Classes[apply(yhat1 , 2 , function( M ) which( M == max(M) ) ) ] 	 
+yh2 <- sum((yhat1 == ny)) / length(ny)
+
+yhat1 <- fwd.prop( nx  , 1 , mnist.fit.30$W,  mnist.fit.30$B, 
+relu, stable.softmax)
+yhat1 <- yhat1$A[[2]]
+yhat1 <- Classes[apply(yhat1 , 2 , function( M ) which( M == max(M) ) ) ] 	 
+yh3 <- sum((yhat1 == ny)) / length(ny)
+
+hu <- data.frame( c(yh1,yh2,yh3) , c(5,10,30) ); colnames(hu) <- c("accuracy","nodes")
+hu
+```
+
 
 ```{r}
 beep("mario")
