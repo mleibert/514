@@ -5,13 +5,6 @@ require(beepr)
 #	amazon$Text <- as.character(amazon$Text )
 head(amazon)
 
-data("movie_review")
-train_ids = sample(movie_review$id, 4000)
- train = movie_review[J(train_ids)]
-
-
-
-
 it_train = itoken(amazon$Text, 
              preprocessor = tolower, 
              tokenizer = word_tokenizer, 
