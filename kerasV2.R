@@ -61,8 +61,10 @@ metrics = c("acc")
  summary(model_logit)
 
 results_binary=fit(model_logit,t(x),y,
-	epochs=10000,verbose=0,batch_size = 75)
-require(beepr)
+	epochs=2,verbose=0,batch_size = 32)
+ 
 beep("coin")
 plot(results_binary)
 
+names(results_binary )
+results_binary$params

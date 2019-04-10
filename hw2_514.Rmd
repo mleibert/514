@@ -343,7 +343,7 @@ x = test.dat[,-3]
 
 margin( x , y , vanilla$w , vanilla$b )
 margin( x , y , avg$w , avg$b )
-margin( x , y ,  -fd$w ,   sum(fd$w *fd$m)  )
+margin( x , y ,  fd$w ,   sum(fd$w *fd$m)  )
 
 
 Vm <- Am <- Fm <- rep(NA, 10)
@@ -353,7 +353,7 @@ for( i in 1:10){
 	y = test.dat[,3]; x = test.dat[,-3]
 	Vm[i] <- margin( x , y , vanilla$w , vanilla$b )
 	Am[i] <- margin( x , y , avg$w , avg$b )
-	Fm[i] <- margin( x , y , -fd$w ,  sum(fd$w *fd$m)    )
+	Fm[i] <- margin( x , y , fd$w ,  sum(fd$w *fd$m)    )
 }
 
 mean(Vm); mean(Am); mean(Fm)

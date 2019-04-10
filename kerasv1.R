@@ -94,8 +94,8 @@ metrics = c("acc")
 
 summary(model_2h)
  
-results_2h=system.time(
-fit(model_2h, t(X),Y,epochs=10,verbose=0,batch_size = 128)  )
-
-
+results_2h=  system.time(
+fit(model_2h, t(x),Y,epochs=20,verbose=0,batch_size = 128) )
+beep("coin")
+results_2h
 

@@ -1,4 +1,4 @@
-#Clear plots
+#Clear plots 
 if(!is.null(dev.list())) dev.off()
 
 # Clear console

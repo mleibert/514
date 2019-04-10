@@ -33,7 +33,7 @@ Source the provided hw3_514.R file.  Use the function generate.1d.dataset to cre
 ```{r}
 source('./hw3_514.R')
 set.seed(1234)
-require(MASS)
+require(MASS); require(plyr)
 m1=50;mu1=1;s1=.5
 m2=50;mu2=2;s2=.7
 c(xin,y) %<-% generate.1d.dataset(m1,mu1,s1,m2,mu2,s2)
@@ -236,9 +236,10 @@ c( fit$b, fit$w )
 coef( glm( DF$y  ~ DF$x , family=binomial ) ) # compare Fisher's scoring 
 
 as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )
-1-(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
-plot(fit$perf)
+(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
+plot(1-fit$perf)
 ```
+
 ```{r}
 
 
@@ -284,7 +285,7 @@ fit <- fit.se <- log.fit(  DF$x , DF$y ,neg.logll=F , eta = lr ) ;
 c( fit$b, fit$w )
  
 as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )
-1-(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
+(sum(as.vector( DF$y == Predict( DF$x ,  fit$b, fit$w) )*1)/100)
 
 z <- cbind( fit$W, fit$B , fit$cost)
 ```
@@ -295,7 +296,7 @@ plot(   fit$cost , xlab = "cost history")
 plot( fit$W , fit$B, xlab = "weight history" )
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot(   fit$gradnorm  , xlab = "Gradient history")
-plot( fit$perf , xlab = "performance" )
+plot( 1-fit$perf , xlab = "performance" )
 
 par(mfrow=c(1,1) , mai=c(.85 , .5, .25 , .5 ) )
 LO <- 50
@@ -351,7 +352,7 @@ fit <- fit.nll.2d <- log.fit(  DF2d$x , DF2d$y ,neg.logll=T , eta = lr ) ;
 c( fit$b, fit$w )
 coef( glm( DF2d$y  ~ DF2d$x , family=binomial ) ) # compare Fisher's scoring 
 
-plot(DF2d$x[,1],DF2d$x[,2])
+plot(DF2d$x[,1],DF2d$x[,2], col = DF2d$y+3, pch = 19 )
 abline(fit$b/(-fit$w[2]) ,fit$w[1]/(-fit$w[2]))
 
 #accuracy
@@ -366,7 +367,7 @@ plot(   fit$cost , xlab = "cost history")
 plot( fit$W ,  xlab = "weight history" )
 par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot(   fit$gradnorm  , xlab = "Gradient history")
-plot( fit$perf, xlab = "performance" )
+plot( 1-fit$perf, xlab = "performance" )
 
 par(mfrow=c(1,1) , mai= c(.85 , .5, .5 , .5 ) )
 ```
@@ -411,7 +412,7 @@ for(j in 1:length(lr)) {
 ```
 
 ```{r}
-par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
+par(mfrow=c(2,2) , mai=c(.85 , .5, .25 , .5 ) )
 plot( cost_history[[1]], xlab = paste0(lr[1]) )
 plot( cost_history[[2]], xlab = paste0(lr[2]) )
 plot( cost_history[[3]], xlab = paste0(lr[3]) )
@@ -426,6 +427,7 @@ sb <- seq(range(fit.lr$B)[1]-1,  range(fit.lr$B)[2]+1, length.out = LO )
 z <- matrix(0 , LO, LO)
 for( i in 1:LO){
 for( j in 1:LO){ z[i,j] <- NLL( DF$x,DF$y, b = sb[i], w = sw[j] ) }}
+par(mfrow=c(1,1),mar = rep(2.1,4) )
 contour(x = sw,   y =sb,  z , nlevels = 50)
 lines( fit.lr$W, fit.lr$B , col = "red", type = "o", pch = "16")
 ```
@@ -451,18 +453,19 @@ lr=c(.01,.025,2.5,25)
 
 for(j in 1:length(lr)) {
   fit.lr.se <- log.fit(  DF$x , DF$y ,neg.logll=F , eta = lr[j] )   
-  cost_history[[j]] <- fit.lr$cost
-  wgt_history[[j]] <- list( b =  fit.lr$B, w = fit.lr$W )
-  perf_history[[j]] <- fit.lr$perf
-  Hist[[j]] <- c(fit.lr$b, fit.lr$w) }
+  cost_history[[j]] <- fit.lr.se$cost
+  wgt_history[[j]] <- list( b =  fit.lr.se$B, w = fit.lr.se$W )
+  perf_history[[j]] <- fit.lr.se$perf
+  Hist[[j]] <- c(fit.lr.se$b, fit.lr.se$w) }
 ```
+ 
 
 ```{r }
-par(mfrow=c(1,2) , mai=c(.85 , .5, .25 , .5 ) )
-plot( cost_history[[1]], xlab = paste0(lr[1]) )
-plot( cost_history[[2]], xlab = paste0(lr[2]) )
-plot( cost_history[[3]], xlab = paste0(lr[3]) )
-plot( cost_history[[4]], xlab = paste0(lr[4]) )
+par(mfrow=c(2,2),mar = rep(2.1,4) )
+plot( cost_history[[1]], main = paste0(lr[1]) )
+plot( cost_history[[2]], main = paste0(lr[2]) )
+plot( cost_history[[3]], main = paste0(lr[3]) )
+plot( cost_history[[4]], main = paste0(lr[4]) )
 
  par(mfrow=c(1,1) , mai=c(.85 , .5, .25 , .5 ) )
 
