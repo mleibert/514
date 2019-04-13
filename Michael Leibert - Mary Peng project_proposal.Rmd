@@ -18,15 +18,30 @@ Project proposals are due Wednesday, April 10. Project teams will give a short p
 
 $\textbf{1. Identify team members. Include name and email}$
 
+\vspace{.5 em}
+
+
 Our team consists of Mary Peng (xp19@georgetown.edu) and Michael Leibert (mll82@georgetown.edu)
 
-$\textbf{2. Provide a problem statement and a description of what you hope to achieve. If you are starting with a project/model found online please provide a link and describe what you will do to add to the work or experiment with.}$
+\vspace{.5 em}
 
-We will use fine foods reviews to predict user sentiment toward products reviewed on Amazon. The sentiment is measured on a scale of 1  to 5, with 5 being the highest positive sentiment. Our dataset contains both short review summary, as well as the full length review. We will start by focusing on predicting user sentiment from the short review summaries, then we will attempt to scale up and use the full reviews for prediction. The dataset also contains other variables, such as user ID, product ID, and the ``helpfulness'' of the review (number of users that rated the review helpful and the number of users that rated the reviews), that we may use in constructing the model.
+\textbf{2. Provide a problem statement and a description of what you hope to achieve. }
+\textbf{If you are starting with a project/model found online please provide a link and describe what you will do to add to the work or experiment with.}
 
-We are particularly interested in different regularization techniques, and will compare the effectiveness of dropout vs. L1 / L2 regularization. 
+\vspace{.5 em}
+
+The problem we are looking at is how to extract a person's sentiment given something they have wrote. Specifically, we will use fine foods reviews to predict user sentiment toward products reviewed on Amazon. The sentiment is measured on a scale of 1  to 5, with 5 being the highest positive sentiment. Our dataset contains both a short review summary, as well as the full length review. 
+
+We start by focusing on predicting user sentiment from the short review summaries, then attempt to scale up and use the full reviews for prediction. The dataset also contains other variables, such as user ID, product ID, and the ``helpfulness'' of the review (number of users that rated the review helpful and the number of users that rated the review), that we may use in constructing the model.
+
+We are particularly interested in different regularization techniques, and will compare the effectiveness of dropout vs. L1 / L2 regularization. Our data processing phase will incorporate some elementary ideas that are used in NLP. Some preliminary techniques we are investigating are tokenization, how embedding layers work, bag of words, \verb|word2vec|, and other pretrained word embeddings. Some approaches could be dropped and others adopted as we move forward.
+
+\vspace{.5 em}
 
 $\textbf{3. Give a description of the data set}$
+
+\vspace{.5 em}
+
 The dataset comes from Stanford's SNAP database (https://snap.stanford.edu/data/web-FineFoods.html). The dataset contains 568,454 reviews by 256,059 between 1999 and 2012. We will split the dataset into 60\% training, 20\% hyperparameter tuning, and 20\% test.  Sample data format is as follows: 
 
 product/productId: asin, e.g. amazon.com/dp/B001E4KFG0
