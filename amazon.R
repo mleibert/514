@@ -179,8 +179,7 @@ model <- keras_model_sequential() %>%
 	layer_dense(5 , activation = "softmax" )  
 
   model <- keras_model_sequential() %>%
- 
-  layer_dense(400 , activation = "relu", input_shape = c(200) )  %>%
+   layer_dense(400 , activation = "relu", input_shape = c(200) )  %>%
   layer_dropout(0.2) %>%
    layer_dense(400 , activation = "relu", input_shape = c(200) )  %>%
   layer_dropout(0.2) %>%
