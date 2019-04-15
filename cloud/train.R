@@ -1,4 +1,3 @@
-require("cloudml")
 library(keras)
 library(readr)
 library(stringr)
