@@ -1,125 +1,99 @@
 library(keras)
-library(readr)
-library(stringr)
-library(purrr)
-library(tokenizers)
-setwd("G:\\math\\514\\cloud")
+library(tensorflow)
+sess = tf$Session()
+hello <- tf$constant('Hello, TensorFlow!')
+sess$run(hello)
+
+amazon <- read.csv("reviews.csv")
+
+one.hot <- function(Z){return(unname( as.matrix( 
+  as.data.frame( t( model.matrix(~ as.factor(Z) + 0) ) ) ) )) }
+
+testsamples <- sample( 1:nrow(amazon)   , ((nrow(amazon) )/ 2 ))
+trainsamples <-  setdiff(  1:nrow(amazon)   , testsamples)
+ytrain <- amazon[trainsamples,]$Score
+ytest <- amazon[testsamples ,]$Score
+
+length(testsamples ) == length(trainsamples )
+samples <- amazon[,10]; rm(amazon)
+
+max_features <- 500
+gc()
+
+tokenizer <- text_tokenizer( num_words = max_features   ) %>% 
+	fit_text_tokenizer(samples)
+
+oh_results <- texts_to_matrix(tokenizer,samples, mode = "tfidf")
+dim(oh_results)
+
+
+
+x_train <- oh_results[trainsamples,]
+x_test <- oh_results[testsamples ,]
+rm(oh_results)
+
+ytrain <- t( one.hot(ytrain ) )
+ytest <- t( one.hot(ytest) )
+
+
+
+batch_size <- 32
+embedding_dims <- 50
+filters <- 250
+kernel_size <- 3
+hidden_dims <- 250
+epochs <- 5
+
  
-# Parameters --------------------------------------------------------------
 
-maxlen <- 40
+maxlen <- dim(x_train)[2]
 
-# Data Preparation --------------------------------------------------------
 
-# Retrieve text
-path <- get_file(
-  'nietzsche.txt', 
-  origin='https://s3.amazonaws.com/text-datasets/nietzsche.txt'
+
+
+
+model <- keras_model_sequential() %>%
+  #layer_embedding(input_dim=max_features,
+	#	 output_dim=embedding_dims, input_length = maxlen) %>%
+  #layer_dropout(rate=0.2) %>%
+  #layer_flatten(.) %>%
+  layer_dense(400 , activation = "relu", input_shape = maxlen )  %>%
+  layer_dropout(0.2) %>%
+  layer_dense(400 , activation = "relu"  )  %>%
+  layer_dropout(0.2) %>%
+  layer_dense(5 , activation = "softmax" )  
+
+
+model <- keras_model_sequential() %>% 
+	layer_dense(400 , activation = "relu", input_shape = maxlen )  %>%
+		layer_dropout(0.2) %>%
+ 	layer_dense(400 , activation = "relu" )  %>%
+		layer_dropout(0.2) %>%
+	layer_dense(5 , activation = "softmax" )  
+
+
+
+# Compile model
+model %>% compile(
+  loss = "categorical_crossentropy",
+  optimizer = "adagrad",
+  metrics = "accuracy"
 )
 
-# Load, collapse, and tokenize text
-text <- read_lines(path) %>%
-  str_to_lower() %>%
-  str_c(collapse = "\n") %>%
-  tokenize_characters(strip_non_alphanum = FALSE, simplify = TRUE)
-
-print(sprintf("corpus length: %d", length(text)))
-
-chars <- text %>%
-  unique() %>%
-  sort()
-
-print(sprintf("total chars: %d", length(chars)))  
-
-# Cut the text in semi-redundant sequences of maxlen characters
-dataset <- map(
-  seq(1, length(text) - maxlen - 1, by = 3), 
-  ~list(sentece = text[.x:(.x + maxlen - 1)], next_char = text[.x + maxlen])
-)
-
-dataset <- transpose(dataset)
-
-# Vectorization
-x <- array(0, dim = c(length(dataset$sentece), maxlen, length(chars)))
-y <- array(0, dim = c(length(dataset$sentece), length(chars)))
-
-for(i in 1:length(dataset$sentece)){
-  
-  x[i,,] <- sapply(chars, function(x){
-    as.integer(x == dataset$sentece[[i]])
-  })
-  
-  y[i,] <- as.integer(chars == dataset$next_char[[i]])
-  
-}
-
-# Model Definition --------------------------------------------------------
-
-model <- keras_model_sequential()
+# Training ----------------------------------------------------------------
 
 model %>%
-  layer_lstm(128, input_shape = c(maxlen, length(chars))) %>%
-  layer_dense(length(chars)) %>%
-  layer_activation("softmax")
+  fit(
+    x_train, (ytrain),
+    batch_size = batch_size,
+    epochs = 5 ,
+    validation_data = list(x_test, (ytest ) )
+  )
 
-optimizer <- optimizer_rmsprop(lr = 0.01)
 
-model %>% compile(
-  loss = "categorical_crossentropy", 
-  optimizer = optimizer
-)
+## RNN's and embedding? What is pad sequences doing
 
-# Training & Results ----------------------------------------------------
 
-sample_mod <- function(preds, temperature = 1){
-  preds <- log(preds)/temperature
-  exp_preds <- exp(preds)
-  preds <- exp_preds/sum(exp(preds))
-  
-  rmultinom(1, 1, preds) %>% 
-    as.integer() %>%
-    which.max()
-}
+# model %>% save_model_weights_hdf5("adagrad.h5")
 
-on_epoch_end <- function(epoch, logs) {
-  
-  cat(sprintf("epoch: %02d ---------------\n\n", epoch))
-  
-  for(diversity in c(0.2, 0.5, 1, 1.2)){
-    
-    cat(sprintf("diversity: %f ---------------\n\n", diversity))
-    
-    start_index <- sample(1:(length(text) - maxlen), size = 1)
-    sentence <- text[start_index:(start_index + maxlen - 1)]
-    generated <- ""
-    
-    for(i in 1:400){
-      
-      x <- sapply(chars, function(x){
-        as.integer(x == sentence)
-      })
-      x <- array_reshape(x, c(1, dim(x)))
-      
-      preds <- predict(model, x)
-      next_index <- sample_mod(preds, diversity)
-      next_char <- chars[next_index]
-      
-      generated <- str_c(generated, next_char, collapse = "")
-      sentence <- c(sentence[-1], next_char)
-      
-    }
-    
-    cat(generated)
-    cat("\n\n")
-    
-  }
-}
 
-print_callback <- callback_lambda(on_epoch_end = on_epoch_end)
-
-model %>% fit(
-  x, y,
-  batch_size = 128,
-  epochs = 1,
-  callbacks = print_callback
-)
