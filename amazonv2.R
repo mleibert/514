@@ -1,9 +1,26 @@
-max_features <- 10000
+
+setwd("G:\\math\\514")
+
+require(keras) 
+require(beepr)
+amdir <- "G:\\math\\514\\cloud\\reviews.csv"
+#	amazon <- read.csv(  amdir , stringsAsFactors= F )
+#	amazon$Text <- as.character(amazon$Text )
+
+library(tensorflow)
+sess = tf$Session()
+hello <- tf$constant('Hello, TensorFlow!') 
+sess$run(hello)
+
+
+
+max_features <- 500
 maxlen <- 70
  
 samples <- amazon[,10]
 
-tokenizer <- text_tokenizer( num_words = 400  ) %>% fit_text_tokenizer(samples)
+tokenizer <- text_tokenizer( num_words = max_features ) %>% 
+	fit_text_tokenizer(samples)
 
 #sequences <- texts_to_sequences(tokenizer, samples)
 

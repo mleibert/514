@@ -17,7 +17,7 @@ ytest <- amazon[testsamples ,]$Score
 length(testsamples ) == length(trainsamples )
 samples <- amazon[,10]; rm(amazon)
 
-max_features <- 500
+max_features <- 1000
 gc()
 
 tokenizer <- text_tokenizer( num_words = max_features   ) %>% 
@@ -42,7 +42,7 @@ embedding_dims <- 50
 filters <- 250
 kernel_size <- 3
 hidden_dims <- 250
-epochs <- 5
+epochs <- 10
 
  
 
@@ -51,17 +51,21 @@ maxlen <- dim(x_train)[2]
 
 
 
+# 
+# model <- keras_model_sequential() %>%
+#   #layer_embedding(input_dim=max_features,
+# 	#	 output_dim=embedding_dims, input_length = maxlen) %>%
+#   #layer_dropout(rate=0.2) %>%
+#   #layer_flatten(.) %>%
+#   layer_dense(400 , activation = "relu", input_shape = maxlen )  %>%
+#   layer_dropout(0.2) %>%
+#   layer_dense(400 , activation = "relu"  )  %>%
+#   layer_dropout(0.2) %>%
+#   layer_dense(5 , activation = "softmax" )  
+# 
 
-model <- keras_model_sequential() %>%
-  #layer_embedding(input_dim=max_features,
-	#	 output_dim=embedding_dims, input_length = maxlen) %>%
-  #layer_dropout(rate=0.2) %>%
-  #layer_flatten(.) %>%
-  layer_dense(400 , activation = "relu", input_shape = maxlen )  %>%
-  layer_dropout(0.2) %>%
-  layer_dense(400 , activation = "relu"  )  %>%
-  layer_dropout(0.2) %>%
-  layer_dense(5 , activation = "softmax" )  
+
+## "Very simple. Just keep adding layers until the test error does not improve anymore."
 
 
 model <- keras_model_sequential() %>% 
@@ -69,7 +73,17 @@ model <- keras_model_sequential() %>%
 		layer_dropout(0.2) %>%
  	layer_dense(400 , activation = "relu" )  %>%
 		layer_dropout(0.2) %>%
-	layer_dense(5 , activation = "softmax" )  
+  layer_dense(400 , activation = "relu" )  %>%
+  layer_dropout(0.2) %>%
+  layer_dense(400 , activation = "relu" )  %>%
+  layer_dropout(0.2) %>%
+  layer_dense(400 , activation = "relu" )  %>%
+  layer_dropout(0.2) %>%
+  layer_dense(400 , activation = "relu" )  %>%
+  layer_dropout(0.2) %>%
+  layer_dense(400 , activation = "relu" )  %>%
+  layer_dropout(0.2) %>%
+  	layer_dense(5 , activation = "softmax" )  
 
 
 
@@ -86,7 +100,7 @@ model %>%
   fit(
     x_train, (ytrain),
     batch_size = batch_size,
-    epochs = 5 ,
+    epochs = epochs ,
     validation_data = list(x_test, (ytest ) )
   )
 
@@ -94,6 +108,6 @@ model %>%
 ## RNN's and embedding? What is pad sequences doing
 
 
-# model %>% save_model_weights_hdf5("adagrad.h5")
+save_model_hdf5(model, 'model1.h5')
 
 

@@ -1,4 +1,4 @@
-rm(list=ls())
+rm(list=ls());gc()
 
  
 library(keras)
@@ -7,7 +7,7 @@ sess = tf$Session()
 hello <- tf$constant('Hello, TensorFlow!')
 sess$run(hello)
 
- amdir <- "C:\\Users\\Administrator\\Documents\\reviews.csv"
+ amdir <- "G:\\math\\514\\cloud\\reviews.csv"
  amazon <- read.csv(  amdir , stringsAsFactors= F )
  amazon$Text <- as.character(amazon$Text )
 
@@ -32,13 +32,13 @@ oh_results <- texts_to_matrix(tokenizer,samples, mode = "tfidf")
 dim(oh_results)
 
 
+ytrain <- t( one.hot(ytrain ) )
+ytest <- t( one.hot(ytest) )
 
 x_train <- oh_results[trainsamples,]
 x_test <- oh_results[testsamples ,]
 rm(oh_results);gc()
 
-ytrain <- t( one.hot(ytrain ) )
-ytest <- t( one.hot(ytest) )
 
 
 
@@ -67,6 +67,10 @@ model <- keras_model_sequential() %>%
 
 
 model <- keras_model_sequential() %>% 
+	layer_gru(300) %>%
+		layer_dropout(0.2) %>%
+	layer_gru(300 ) %>%
+		layer_dropout(0.2) %>%
 	layer_dense(400 , activation = "relu", input_shape = maxlen )  %>%
 		layer_dropout(0.2) %>%
  	layer_dense(400 , activation = "relu" )  %>%
@@ -76,6 +80,27 @@ model <- keras_model_sequential() %>%
   layer_dense(5 , activation = "softmax" )  
 
 gc()
+
+
+
+model <- keras_model_sequential() %>%
+	layer_dense(400 , activation = "relu"  )  %>%
+		layer_dropout(0.2)  %>%
+	layer_lstm(units = 300) %>%
+		layer_dropout(0.2) %>%
+	layer_lstm(units = 300 ) %>%
+		layer_dropout(0.2) %>%
+  layer_dense(5 , activation = "softmax" )  
+
+
+
+model <- keras_model_sequential() %>%
+	layer_dense(400 , activation = "relu", input_shape = maxlen )  %>%
+		layer_dropout(0.2)  %>%
+	layer_lstm(units = 30) %>%
+  layer_dense(5 , activation = "softmax" )  
+
+
 
 # Compile model
 model %>% compile(
@@ -90,7 +115,7 @@ model %>%
   fit(
     x_train, (ytrain),
     batch_size = batch_size,
-    epochs = 20 ,
+    epochs = 5 ,
     validation_data = list(x_test, (ytest ) )
   )
 

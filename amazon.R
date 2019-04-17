@@ -1,6 +1,6 @@
 rm(list=ls())
 
-library(text2vec)
+#	library(text2vec)
 setwd("G:\\math\\514")
 
 require(keras) 

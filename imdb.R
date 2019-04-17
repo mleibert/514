@@ -1,101 +1,36 @@
 library(keras)
-
-imdb <- dataset_imdb( num_words = 5000 )
- 
-
-# shrink data set
-
-length(imdb[[1]]$x);length(imdb[[2]]$x)
-length(imdb[[1]]$y);length(imdb[[2]]$y)
-
-#	imdb[[1]]$x <- imdb[[1]]$x[1:5000]
-#	imdb[[2]]$x <- imdb[[2]]$x[1:5000]
-
-#	imdb[[1]]$y <- imdb[[1]]$y[1:5000]
-#	imdb[[2]]$y <- imdb[[2]]$y[1:5000]
-
-
-
-names(imdb)
-
-mylist <- list()
-for( i in 1:10){	mylist[[i]] <- rpois( rpois(1,20) , 100 ) }
-sapply( mylist, length)
-
-mylist[1:5]
-
-
-
-x_train <- imdb$train$x %>% pad_sequences(maxlen = 400)
-length( imdb$train$x ); dim( x_train  )
-layer_embedding( 5000, 50 , 400 )
-# 5000 is max_features, the 5000 most common words
-# 50 is embedding dims ?
-# 400 is input_length / maxlen, 
-	#"length in input sequences when it is constant"
-
-
-
-
-
-# Set parameters:
-max_features <- 5000
-maxlen <- 400
+max_features <- 100                                              
+maxlen <- 500                                                      
 batch_size <- 32
-embedding_dims <- 50
-filters <- 250
-kernel_size <- 3
-hidden_dims <- 250
-epochs <- 2
+cat("Loading data...\n")
 
-x_train <- imdb$train$x %>%
-  pad_sequences(maxlen = maxlen)
-x_test <- imdb$test$x %>%
-  pad_sequences(maxlen = maxlen)
+imdb <- dataset_imdb(num_words = max_features)
+c(c(input_train, y_train), c(input_test, y_test)) %<-% imdb
+cat(length(input_train), "train sequences\n")
+cat(length(input_test), "test sequences")
+cat("Pad sequences (samples x time)\n")
+input_train <- pad_sequences(input_train, maxlen = maxlen)
+input_test <- pad_sequences(input_test, maxlen = maxlen)
+cat("input_train shape:", dim(input_train), "\n")
+cat("input_test shape:", dim(input_test), "\n")
 
 
-model <- keras_model_sequential()
 
-model %>% 
-  # Start off with an efficient embedding layer which maps
-  # the vocab indices into embedding_dims dimensions
-  layer_embedding(max_features, embedding_dims, input_length = maxlen) %>%
-  layer_dropout(0.2) %>%
+model <- keras_model_sequential() %>%
+  layer_embedding(input_dim = max_features, output_dim = 32) %>%
+  layer_simple_rnn(units = 32) %>%
+  layer_dense(units = 1, activation = "sigmoid")
 
-  # Add a Convolution1D, which will learn filters
-    # Word group filters of size filter_length:
-  layer_conv_1d(
-    filters, kernel_size, 
-    padding = "valid", activation = "relu", strides = 1
-  ) %>%
-  # Apply max pooling:
-  layer_global_max_pooling_1d() %>%
 
-  # Add a vanilla hidden layer:
-  layer_dense(hidden_dims) %>%
-
-  # Apply 20% layer dropout
-  layer_dropout(0.2) %>%
-  layer_activation("relu") %>%
-
-  # Project onto a single unit output layer, and squash it with a sigmoid
-
-  layer_dense(1) %>%
-  layer_activation("sigmoid")
-
-# Compile model
 model %>% compile(
+  optimizer = "rmsprop",
   loss = "binary_crossentropy",
-  optimizer = "adam",
-  metrics = "accuracy"
+  metrics = c("acc")
 )
 
-# Training ----------------------------------------------------------------
-
-model %>%
-  fit(
-    x_train, imdb$train$y,
-    batch_size = batch_size,
-    epochs = epochs,
-    validation_data = list(x_test, imdb$test$y)
-  )
+history <- model %>% fit(
+  input_train, y_train,
+  epochs = 10,
+  batch_size = 128,
+  validation_split = 0.2
+)
