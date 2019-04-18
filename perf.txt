@@ -1,0 +1,240 @@
+> L1 = 0.01 
+> L2 = 0
+> DO = 0.2
+> OP = "adam" 
+> Node = 400
+> 
+> model <- keras_model_sequential() %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>%  
++   layer_dense(Node , activation = "relu", input_shape = maxlen ,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>%
++   layer_dense(5 , activation = "softmax" )  
+> 
+> epochs = 4
+> 
+> # Compile model
+> model %>% compile(
++   loss = "categorical_crossentropy",
++   optimizer = OP,
++   metrics = "accuracy"
++ )
+> 
+> # Training ----------------------------------------------------------------
+> 
+> FIT <- model %>%
++   fit(
++     x_train, (ytrain),
++     batch_size = batch_size,
++     epochs = epochs ,
++     validation_data = list(x_test, (ytest ) )
++   )
+Train on 284227 samples, validate on 284227 samples
+Epoch 1/4
+284227/284227 [==============================] - 81s 285us/step - loss: 3.3207 - acc: 0.6390 - val_loss: 2.2246 - val_acc: 0.6385
+Epoch 2/4
+284227/284227 [==============================] - 80s 281us/step - loss: 2.2214 - acc: 0.6391 - val_loss: 2.2199 - val_acc: 0.6385
+Epoch 3/4
+284227/284227 [==============================] - 80s 282us/step - loss: 2.2199 - acc: 0.6391 - val_loss: 2.2201 - val_acc: 0.6385
+Epoch 4/4
+284227/284227 [==============================] - 80s 281us/step - loss: 2.2185 - acc: 0.6391 - val_loss: 2.2186 - val_acc: 0.6385
+> L1 = 0.01 
+> L2 = 0
+> DO = 0.2
+> OP = "adagrad" 
+> Node = 400
+> 
+> model <- keras_model_sequential() %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>%  
++   layer_dense(Node , activation = "relu", input_shape = maxlen ,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>%
++   layer_dense(5 , activation = "softmax" )  
+> 
+> epochs = 4
+> 
+> # Compile model
+> model %>% compile(
++   loss = "categorical_crossentropy",
++   optimizer = OP,
++   metrics = "accuracy"
++ )
+> 
+> # Training ----------------------------------------------------------------
+> 
+> FIT <- model %>%
++   fit(
++     x_train, (ytrain),
++     batch_size = batch_size,
++     epochs = epochs ,
++     validation_data = list(x_test, (ytest ) )
++   )
+Train on 284227 samples, validate on 284227 samples
+Epoch 1/4
+284227/284227 [==============================] - 72s 252us/step - loss: 1.8705 - acc: 0.6390 - val_loss: 1.3385 - val_acc: 0.6385
+Epoch 2/4
+284227/284227 [==============================] - 71s 249us/step - loss: 1.3051 - acc: 0.6391 - val_loss: 1.2849 - val_acc: 0.6385
+Epoch 3/4
+284227/284227 [==============================] - 71s 249us/step - loss: 1.2684 - acc: 0.6391 - val_loss: 1.2560 - val_acc: 0.6385
+Epoch 4/4
+284227/284227 [==============================] - 71s 249us/step - loss: 1.2474 - acc: 0.6391 - val_loss: 1.2405 - val_acc: 0.6385
+> L1 = 0.01 
+> L2 = 0
+> DO = 0.2
+> OP = "nadam" 
+> Node = 400
+> 
+> model <- keras_model_sequential() %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>%  
++   layer_dense(Node , activation = "relu", input_shape = maxlen ,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>%
++   layer_dense(5 , activation = "softmax" )  
+> 
+> epochs = 4
+> 
+> # Compile model
+> model %>% compile(
++   loss = "categorical_crossentropy",
++   optimizer = OP,
++   metrics = "accuracy"
++ )
+> 
+> # Training ----------------------------------------------------------------
+> 
+> FIT <- model %>%
++   fit(
++     x_train, (ytrain),
++     batch_size = batch_size,
++     epochs = epochs ,
++     validation_data = list(x_test, (ytest ) )
++   )
+Train on 284227 samples, validate on 284227 samples
+Epoch 1/4
+284227/284227 [==============================] - 92s 322us/step - loss: 5.1101 - acc: 0.6390 - val_loss: 3.5306 - val_acc: 0.6385
+Epoch 2/4
+284227/284227 [==============================] - 91s 319us/step - loss: 3.1309 - acc: 0.6391 - val_loss: 2.8884 - val_acc: 0.6385
+Epoch 3/4
+284227/284227 [==============================] - 90s 318us/step - loss: 2.7990 - acc: 0.6391 - val_loss: 2.7502 - val_acc: 0.6385
+Epoch 4/4
+284227/284227 [==============================] - 91s 319us/step - loss: 2.7206 - acc: 0.6391 - val_loss: 2.7046 - val_acc: 0.6385
+> L1 = 0.01 
+> L2 = 0
+> DO = 0.2
+> OP = "adadelta" 
+> Node = 400
+> 
+> model <- keras_model_sequential() %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>%  
++   layer_dense(Node , activation = "relu", input_shape = maxlen ,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>%
++   layer_dense(5 , activation = "softmax" )  
+> 
+> epochs = 4
+> 
+> # Compile model
+> model %>% compile(
++   loss = "categorical_crossentropy",
++   optimizer = OP,
++   metrics = "accuracy"
++ )
+> 
+> # Training ----------------------------------------------------------------
+> 
+> FIT <- model %>%
++   fit(
++     x_train, (ytrain),
++     batch_size = batch_size,
++     epochs = epochs ,
++     validation_data = list(x_test, (ytest ) )
++   )
+Train on 284227 samples, validate on 284227 samples
+Epoch 1/4
+284227/284227 [==============================] - 87s 308us/step - loss: 21.2387 - acc: 0.6390 - val_loss: 27.9686 - val_acc: 0.6385
+Epoch 2/4
+284227/284227 [==============================] - 87s 305us/step - loss: 31.9508 - acc: 0.6391 - val_loss: 35.1318 - val_acc: 0.6385
+Epoch 3/4
+284227/284227 [==============================] - 87s 305us/step - loss: 37.2511 - acc: 0.6391 - val_loss: 39.0136 - val_acc: 0.6385
+Epoch 4/4
+284227/284227 [==============================] - 87s 305us/step - loss: 40.2595 - acc: 0.6391 - val_loss: 41.2992 - val_acc: 0.6385
+> L1 = 0.01 
+> L2 = 0
+> DO = 0.2
+> OP = "adamax" 
+> Node = 400
+> 
+> model <- keras_model_sequential() %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
++   layer_dropout(DO) %>%  
++   layer_dense(Node , activation = "relu", input_shape = maxlen ,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>% 
++   layer_dense(Node , activation = "relu", input_shape = maxlen,
++               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
++   layer_dropout(DO) %>%
++   layer_dense(5 , activation = "softmax" )  
+> 
+> epochs = 4
+> 
+> # Compile model
+> model %>% compile(
++   loss = "categorical_crossentropy",
++   optimizer = OP,
++   metrics = "accuracy"
++ )
+> 
+> # Training ----------------------------------------------------------------
+> 
+> FIT <- model %>%
++   fit(
++     x_train, (ytrain),
++     batch_size = batch_size,
++     epochs = epochs ,
++     validation_data = list(x_test, (ytest ) )
++   )
+Train on 284227 samples, validate on 284227 samples
+Epoch 1/4
+284227/284227 [==============================] - 76s 268us/step - loss: 4.0046 - acc: 0.6390 - val_loss: 3.2438 - val_acc: 0.6385
+Epoch 2/4
+284227/284227 [==============================] - 75s 265us/step - loss: 3.2418 - acc: 0.6391 - val_loss: 3.2385 - val_acc: 0.6385
+Epoch 3/4
+284227/284227 [==============================] - 75s 264us/step - loss: 3.2390 - acc: 0.6391 - val_loss: 3.2378 - val_acc: 0.6385
+Epoch 4/4
+284227/284227 [==============================] - 75s 264us/step - loss: 3.2387 - acc: 0.6391 - val_loss: 3.2511 - val_acc: 0.6385
