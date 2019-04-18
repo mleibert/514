@@ -1,0 +1,92 @@
+
+> library(keras)
+
+> library(tensorflow)
+
+> sess = tf$Session()
+
+> hello <- tf$constant("Hello, TensorFlow!")
+
+> sess$run(hello)
+[1] "Hello, TensorFlow!"
+
+> amazon <- read.csv("reviews.csv")
+
+> one.hot <- function(Z) {
++     return(unname(as.matrix(as.data.frame(t(model.matrix(~as.factor(Z) + 
++         0))))))
++ }
+
+> testsamples <- sample(1:nrow(amazon), ((nrow(amazon))/2))
+
+> trainsamples <- setdiff(1:nrow(amazon), testsamples)
+
+> ytrain <- amazon[trainsamples, ]$Score
+
+> ytest <- amazon[testsamples, ]$Score
+
+> length(testsamples) == length(trainsamples)
+[1] TRUE
+
+> samples <- amazon[, 10]
+
+> rm(amazon)
+
+> max_features <- 1000
+
+> gc()
+           used  (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells  1568232  83.8    4703850 251.3  2983302 159.4
+Vcells 25118173 191.7   48052061 366.7 47988377 366.2
+
+> tokenizer <- text_tokenizer(num_words = max_features) %>% 
++     fit_text_tokenizer(samples)
+
+> oh_results <- texts_to_matrix(tokenizer, samples, 
++     mode = "tfidf")
+
+> dim(oh_results)
+[1] 568454   1000
+
+> x_train <- oh_results[trainsamples, ]
+
+> x_test <- oh_results[testsamples, ]
+
+> rm(oh_results)
+
+> ytrain <- t(one.hot(ytrain))
+
+> ytest <- t(one.hot(ytest))
+
+> batch_size <- 32
+
+> embedding_dims <- 50
+
+> filters <- 250
+
+> kernel_size <- 3
+
+> hidden_dims <- 250
+
+> epochs <- 15
+
+> maxlen <- dim(x_train)[2]
+
+> L1 = 0
+
+> L2 = 0.01
+
+> DO = 0.01
+
+> OP = "adam"
+
+> model <- keras_model_sequential() %>% layer_dense(400, 
++     activation = "relu", input_shape = maxlen, kernel_regularizer = regularizer_l1_l2(l1 = .... [TRUNCATED] 
+
+> model %>% compile(loss = "categorical_crossentropy", 
++     optimizer = OP, metrics = "accuracy")
+
+> model %>% fit(x_train, (ytrain), batch_size = batch_size, 
++     epochs = epochs, validation_data = list(x_test, (ytest)))
+
+> save_model_hdf5(model, "model1.h5")
