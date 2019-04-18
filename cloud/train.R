@@ -1,11 +1,11 @@
 library(keras)
+library(tm)
 library(tensorflow)
 sess = tf$Session()
 hello <- tf$constant('Hello, TensorFlow!')
 sess$run(hello)
  
-amazon <- read.csv("reviews.csv")
- 
+amazon <- read.csv("reviews.csv", stringsAsFactors= F)
 one.hot <- function(Z){return(unname( as.matrix( 
   as.data.frame( t( model.matrix(~ as.factor(Z) + 0) ) ) ) )) }
  
@@ -16,7 +16,9 @@ ytest <- amazon[testsamples ,]$Score
  
 length(testsamples ) == length(trainsamples )
 samples <- amazon[,10]; rm(amazon)
- 
+samples <- removeWords(samples, stopwords("en"))
+samples <- stripWhitespace(samples)
+
 max_features <- 1000
 gc()
  
@@ -42,15 +44,15 @@ embedding_dims <- 50
 filters <- 250
 kernel_size <- 3
 hidden_dims <- 250
-epochs <- 15
+epochs <- 10
+
+fitlist <- list()
  
  
  
 maxlen <- dim(x_train)[2]
  
- 
- 
- 
+
 # 
 # model <- keras_model_sequential() %>%
 #   #layer_embedding(input_dim=max_features,
@@ -65,21 +67,22 @@ maxlen <- dim(x_train)[2]
 # 
 
 L1 = 0 
-L2 = 0.01
-DO = 0.01
-OP = "adam" 
+L2 = 0
+DO = 0.2
+OP = "adadelta" 
+Node = 400
 
 model <- keras_model_sequential() %>% 
-	layer_dense(400 , activation = "relu", input_shape = maxlen,
+	layer_dense(Node , activation = "relu", input_shape = maxlen,
 	            kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
               layer_dropout(DO) %>% 
-  layer_dense(400 , activation = "relu", input_shape = maxlen,
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
               layer_dropout(DO) %>%  
-  layer_dense(400 , activation = "relu", input_shape = maxlen ,
+  layer_dense(Node , activation = "relu", input_shape = maxlen ,
               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
               layer_dropout(DO) %>% 
-  layer_dense(400 , activation = "relu", input_shape = maxlen,
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
               kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
               layer_dropout(DO) %>%
   layer_dense(5 , activation = "softmax" )  
@@ -103,8 +106,51 @@ model %>%
     validation_data = list(x_test, (ytest ) )
   )
  
- 
-## RNN's and embedding? What is pad sequences doing
- 
- 
-save_model_hdf5(model, 'model1.h5')
+save_model_hdf5( model, paste0(OP,".h5" )) 
+
+
+
+# 
+
+L1 = 0 
+L2 = 0
+DO = 0.2
+OP = "adadelta" 
+Node = 400
+
+model <- keras_model_sequential() %>% 
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
+  layer_dropout(DO) %>% 
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
+  layer_dropout(DO) %>%  
+  layer_dense(Node , activation = "relu", input_shape = maxlen ,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
+  layer_dropout(DO) %>% 
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
+  layer_dropout(DO) %>%
+  layer_dense(5 , activation = "softmax" )  
+
+
+
+# Compile model
+model %>% compile(
+  loss = "categorical_crossentropy",
+  optimizer = OP,
+  metrics = "accuracy"
+)
+
+# Training ----------------------------------------------------------------
+
+model %>%
+  fit(
+    x_train, (ytrain),
+    batch_size = batch_size,
+    epochs = epochs ,
+    validation_data = list(x_test, (ytest ) )
+  )
+
+save_model_hdf5( model, paste0(OP,".h5" )) 
+
