@@ -98,7 +98,7 @@ model %>% compile(
  
 # Training ----------------------------------------------------------------
  
-model %>%
+FIT <- model %>%
   fit(
     x_train, (ytrain),
     batch_size = batch_size,
@@ -108,14 +108,15 @@ model %>%
  
 save_model_hdf5( model, paste0(OP,".h5" )) 
 
-
+fitlist[[1]] <- FIT
+fitlist[[1]]$OPT <- OP 
 
 # 
 
 L1 = 0 
 L2 = 0
 DO = 0.2
-OP = "adadelta" 
+OP = "nadam" 
 Node = 400
 
 model <- keras_model_sequential() %>% 
@@ -144,7 +145,7 @@ model %>% compile(
 
 # Training ----------------------------------------------------------------
 
-model %>%
+FIT <- model %>%
   fit(
     x_train, (ytrain),
     batch_size = batch_size,
@@ -153,4 +154,55 @@ model %>%
   )
 
 save_model_hdf5( model, paste0(OP,".h5" )) 
+
+fitlist[[2]] <- FIT
+fitlist[[2]]$OPT <- OP 
+
+# 
+
+L1 = 0 
+L2 = 0
+DO = 0.2
+OP = "adamax" 
+Node = 400
+
+model <- keras_model_sequential() %>% 
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
+  layer_dropout(DO) %>% 
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2) )  %>%
+  layer_dropout(DO) %>%  
+  layer_dense(Node , activation = "relu", input_shape = maxlen ,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
+  layer_dropout(DO) %>% 
+  layer_dense(Node , activation = "relu", input_shape = maxlen,
+              kernel_regularizer = regularizer_l1_l2(l1 = L1, l2 = L2))  %>%
+  layer_dropout(DO) %>%
+  layer_dense(5 , activation = "softmax" )  
+
+
+
+# Compile model
+model %>% compile(
+  loss = "categorical_crossentropy",
+  optimizer = OP,
+  metrics = "accuracy"
+)
+
+# Training ----------------------------------------------------------------
+
+FIT <- model %>%
+  fit(
+    x_train, (ytrain),
+    batch_size = batch_size,
+    epochs = epochs ,
+    validation_data = list(x_test, (ytest ) )
+  )
+
+save_model_hdf5( model, paste0(OP,".h5" )) 
+fitlist[[3]] <- FIT
+fitlist[[3]]$OPT <- OP 
+
+save(fitlist, file="fitlist.RData")
 
