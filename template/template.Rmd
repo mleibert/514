@@ -187,15 +187,15 @@ texts_to_matrix(tokenizer,cattext, mode = "tfidf")
 
 .center[**TF: Term Frequency, which measures how frequently a term occurs in a document. **]
 
-.center[$TF(t) = \cfrac{ \ \text{Number of times term } t \text{ appears in a document} \ }{\text{Total number of terms in the document}}$]
+\begin{align}TF(t) = \cfrac{ \ \text{Number of times term } t \text{ appears in a document} \ }{\text{Total number of terms in the document}}\end{align}
 
 .center[**IDF: Inverse Document Frequency, which measures how important a term is.**]
 
 
-.center[$IDF(t) = \log\left(\cfrac{\text{Total number of documents }}{ \ \text{Number of documents with term } t \text{ in it} \ }\right)$]
-
+\begin{align}IDF(t) = \log\left(\cfrac{\text{Total number of documents }}{ \ \text{Number of documents with term } t \text{ in it} \ }\right)\end{align}
 
 ---
+
 #Converting the text data
 
 
@@ -268,6 +268,8 @@ Compare performance: in sample accuracy / loss & out of sample accuracy / loss
 - Dropout rate of 0.2 at each layer.
 - 10 Epochs; Batch size is 32; All the optimizers have their default arguments.
 
+--
+
 .center[**Adamax had the best performance in 3 out of the 4 criteria.**]
 
 ---
@@ -283,7 +285,7 @@ Batch size for Optimizer testing was 32. Across all optimizers training time per
 
 **Batch size 32; average about 83 seconds.**
 
-.medium[`Train on 284227 samples, validate on 284227 samples`]                                                               
+.medium[`Train on 284227 samples`]                                                               
 .medium[`Epoch 1/5`]                                                                
 .medium[`284227/284227 [==============================] - 88s 310us/step - loss: 0.7446 - acc: 0.7308`]            
 .medium[`Epoch 2/5`]                                                                
@@ -300,7 +302,7 @@ Batch size for Optimizer testing was 32. Across all optimizers training time per
 
 **Batch size 64; average about 43 seconds.**
 
-.medium[`Train on 284227 samples, validate on 284227 samples`]                                                               
+.medium[`Train on 284227 samples`]                                                               
 .medium[`Epoch 1/5`]                                                                
 .medium[`284227/284227 [==============================] - 43s 151us/step - loss: 0.1016 - acc: 0.9661`]            
 .medium[`Epoch 2/5`]                                                                
@@ -318,7 +320,7 @@ Batch size for Optimizer testing was 32. Across all optimizers training time per
 
 **Batch size 1024; average about 12 seconds.**
 
-.medium[`Train on 284227 samples, validate on 284227 samples`]                                                               
+.medium[`Train on 284227 samples`]                                                               
 .medium[`Epoch 1/5`]                                                                
 .medium[`284227/284227 [==============================] - 15s 53us/step - loss: 0.0401 - acc: 0.9874`]            
 .medium[`Epoch 2/5`]                                                                
@@ -424,7 +426,7 @@ Batch size for Optimizer testing was 32. Across all optimizers training time per
 
 # Let's finally make a choice
 
-- Recap: dropout 0.3; L2 = 0.002; Optimizer: adamax; callback: reduce_lr_on_plateau; batch size = 8192; 60 epochs; 700 nodes. **Around 80% accuracy.**
+- Recap: dropout 0.3; L2 = 0.002; Optimizer: adamax; callback: reduce_lr_on_plateau; batch size = 8192; 60 epochs; 3 hidden layers; 700 nodes. **Around 80% accuracy.**
 
 
 <iframe src="goodfit.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
