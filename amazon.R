@@ -8,7 +8,7 @@ require(beepr)
 amdir <- "C:\\Users\\Administrator\\Documents\\reviews.csv"
 #	amazon <- read.csv(  amdir , stringsAsFactors= F )
 #	amazon$Text <- as.character(amazon$Text )
-
+# require(text2vec)
 library(tensorflow)
 sess = tf$Session()
 hello <- tf$constant('Hello, TensorFlow!') 
@@ -21,7 +21,7 @@ it_train = itoken(amazon$Text,
              tokenizer = word_tokenizer, 
              ids = amazon$Id, 
              progressbar = T)
-vocab = create_vocabulary(it_train)
+) = create_vocabulary(it_train)
 
 #mylist <- list()
 #mylist[[ nrow(amazon) + 1 ]] <- rep(NA, nrow(amazon))
@@ -35,7 +35,7 @@ vocab = create_vocabulary(it_train)
 #   }
 # )
 
- 
+
 
 ##########################
 testlist <- list()

@@ -125,4 +125,8 @@ model %>%
 
 # model %>% save_model_weights_hdf5("asdagrad.h5")
 
+mylist <- list()
 
+for( k in 1:5){ mylist[[k]]<-amazon[which(amazon$Score == k)[1],c(7,9,10)] }
+mylist <- do.call(rbind,mylist)
+write.csv(mylist,"hamazon.csv",rownames = F)

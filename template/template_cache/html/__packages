@@ -1,0 +1,8 @@
+base
+ggplot2
+plotly
+shiny
+reshape2
+gridExtra
+kableExtra
+keras

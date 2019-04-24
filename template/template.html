@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+  <head>
+    <title>Amazon Food Reviews</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Mary Peng &amp; Michael Leibert" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis-fonts.css" rel="stylesheet" />
+    <script src="libs/kePrint/kePrint.js"></script>
+    <script src="libs/htmlwidgets/htmlwidgets.js"></script>
+    <script src="libs/plotly-binding/plotly.js"></script>
+    <script src="libs/typedarray/typedarray.min.js"></script>
+    <script src="libs/jquery/jquery.min.js"></script>
+    <link href="libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+    <script src="libs/crosstalk/js/crosstalk.min.js"></script>
+    <link href="libs/plotly-htmlwidgets-css/plotly-htmlwidgets.css" rel="stylesheet" />
+    <script src="libs/plotly-main/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="test.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Amazon Food Reviews
+## Math 514 Class Project Presentation
+### Mary Peng &amp; Michael Leibert
+### (updated: 2019-04-24)
+
+---
+
+
+
+
+
+
+
+#Can we predict rating from reviews?
+
+&lt;table class="table" style="font-size: 18px; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Column &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Example &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: #cbd7d5 !important;"&gt; Product Id &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: #cbd7d5 !important;"&gt; B001E4KFG0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: #e7ebea !important;"&gt; Profile Name &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: #e7ebea !important;"&gt; delmartian &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: #cbd7d5 !important;"&gt; Helpfulness of Review &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: #cbd7d5 !important;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: #e7ebea !important;"&gt; Time of Review &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: #e7ebea !important;"&gt; 1303862400 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: thistle !important;"&gt; Product Rating &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: thistle !important;"&gt; 5 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: thistle !important;"&gt; Summary &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: thistle !important;"&gt; Good Quality Dog Food &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: thistle !important;"&gt; Full Review &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: thistle !important;"&gt; I have bought several of the Vitality canned dog food products and have found them all to be of good quality. The product looks more like a stew than a processed meat and it smells better. My Labrador is finicky and she appreciates this product better than  most. &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+.center[.large[Rows in lavender are the focus of our study.]]
+
+---
+
+#Data Overview
+
+
+&lt;table class="table" style="font-size: 18px; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Rating &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Example: 
+Summary &lt;/th&gt;
+   &lt;th style="text-align:left;background-color: #d0af95 !important;text-align: center;"&gt; Example: Full Review &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 10 em; font-weight: bold;background-color: #cbd7d5 !important;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #cbd7d5 !important;"&gt; Not as Advertised &lt;/td&gt;
+   &lt;td style="text-align:left;width: 45em; background-color: #cbd7d5 !important;"&gt; Product arrived labeled as Jumbo Salted Peanuts...the peanuts were actually small sized unsalted. Not sure if this was an error or if the vendor intended to represent the product as "Jumbo". &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 10 em; font-weight: bold;background-color: #e7ebea !important;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #e7ebea !important;"&gt; Cough Medicine &lt;/td&gt;
+   &lt;td style="text-align:left;width: 45em; background-color: #e7ebea !important;"&gt; If you are looking for the secret ingredient in Robitussin I believe I have found it.  I got this in addition to the Root Beer Extract I ordered (which was good) and made some cherry soda.  The flavor is very medicinal. &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 10 em; font-weight: bold;background-color: #cbd7d5 !important;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #cbd7d5 !important;"&gt; Hearty Oatmeal &lt;/td&gt;
+   &lt;td style="text-align:left;width: 45em; background-color: #cbd7d5 !important;"&gt; This seems a little more wholesome than some of the supermarket brands, but it is somewhat mushy and doesn't have quite as much flavor either.  It didn't pass muster with my kids, so I probably won't buy it again. &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 10 em; font-weight: bold;background-color: #e7ebea !important;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #e7ebea !important;"&gt; "Delight" says it all &lt;/td&gt;
+   &lt;td style="text-align:left;width: 45em; background-color: #e7ebea !important;"&gt; This is a confection that has been around a few centuries.  It is a light, pillowy citrus gelatin with nuts - in this case Filberts. And it is cut into tiny squares and then liberally coated with powdered sugar.  And it is a tiny mouthful of heaven.  Not too chewy, and very flavorful.  I highly recommend this yummy treat... &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 10 em; font-weight: bold;background-color: #cbd7d5 !important;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #cbd7d5 !important;"&gt; Good Quality Dog Food &lt;/td&gt;
+   &lt;td style="text-align:left;width: 45em; background-color: #cbd7d5 !important;"&gt; I have bought several of the Vitality canned dog food products and have found them all to be of good quality. The product looks more like a stew than a processed meat and it smells better. My Labrador is finicky and she appreciates this product better than  most. &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+#Data Overview
+
+&lt;table class="table" style="font-size: 18px; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;background-color: #c2a25a !important;"&gt; Text Type &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #c2a25a !important;"&gt; Median Word Count / Review &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #c2a25a !important;"&gt; Max Word Count / Review &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 5em; font-weight: bold;background-color: #f8f0e8 !important;"&gt; Summary &lt;/td&gt;
+   &lt;td style="text-align:center;width: 8em; font-weight: bold;background-color: #f8f0e8 !important;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 7em; font-weight: bold;background-color: #f8f0e8 !important;"&gt; 42 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 5em; font-weight: bold;background-color: #e9dfd1 !important;"&gt; Full &lt;/td&gt;
+   &lt;td style="text-align:center;width: 8em; font-weight: bold;background-color: #e9dfd1 !important;"&gt; 56 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 7em; font-weight: bold;background-color: #e9dfd1 !important;"&gt; 3432 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+ ![:scaleimgpct 100%](./images/dwc.svg)
+
+---
+#Data Overview
+
+ ![:scaleimgpct 105%](./images/MFAW.svg)
+
+
+---
+#Main questions explored:
+ 
+ ###I. Comparison of different modelling techniques 
+
+1. How do different types of embedding impact performance?
+
+--
+
+1. How do different regularization techniques impact performance?
+
+--
+
+1. How do different types of optimizers impact performance?
+
+--
+
+
+
+
+ ###II. Does the model built on Full Review perform better than the model built on summary text?
+ 
+--
+
+
+ ###III. Does the best-performing model for Amazon reviews generalize well for predicting positive or negative sentiment in Tweets?  
+ 
+---
+
+# Cleaning the text data
+
+**Raw Data**
+
+"Good Quality Dog Food `\(\hspace{2em}\)` "Not as Advertised" `\(\hspace{2em}\)` " 'Delight' says it all"
+
+--
+
+-	Remove Punctuation
+-	Convert to lower case
+-	Remove Numbers
+-	Remove “stop words” (i.e. as, the, etc.)
+-	Apply stemdocument (i.e. convert each word to its root)
+
+-- 
+
+"good quality dog food `\(\hspace{2em}\)` "Not Advertis" `\(\hspace{2em}\)` "delight says"
+
+---
+# Converting the text data
+
+**Text tokenization utility**
+
+- Vectorize a text corpus, by turning each text into either a sequence of integers (each integer being the index of a token in a dictionary) or into a vector where the coefficient for each token could be binary, based on word count, based on tf-idf...
+
+
+
+```r
+library(keras)
+text_tokenizer
+```
+
+```
+## function (num_words = NULL, filters = "!\"#$%&amp;()*+,-./:;&lt;=&gt;?@[\\]^_`{|}~\t\n", 
+##     lower = TRUE, split = " ", char_level = FALSE, oov_token = NULL) 
+## {
+##     args &lt;- list(num_words = as_nullable_integer(num_words), 
+##         filters = filters, lower = lower, split = split, char_level = char_level)
+##     if (keras_version() &gt;= "2.1.3") 
+##         args$oov_token &lt;- oov_token
+##     do.call(keras$preprocessing$text$Tokenizer, args)
+## }
+## &lt;bytecode: 0x00000000215033b0&gt;
+## &lt;environment: namespace:keras&gt;
+```
+
+---
+#Converting the text data
+`texts_to_matrix`
+
+- Convert a list of texts to a matrix. Gives us a `\(525814 \times 3000\)` matrix.
+
+  
+
+```r
+# max_features = max amount of words (3000)
+tokenizer &lt;- text_tokenizer( num_words = max_features   ) %&gt;% 
+	fit_text_tokenizer( TEXT )
+
+texts_to_matrix(tokenizer,cattext, mode = "tfidf")
+```
+
+.center[**TF: Term Frequency, which measures how frequently a term occurs in a document. **]
+
+.center[$TF(t) = \cfrac{ \ \text{Number of times term } t \text{ appears in a document} \ }{\text{Total number of terms in the document}}$]
+
+.center[**IDF: Inverse Document Frequency, which measures how important a term is.**]
+
+
+.center[$IDF(t) = \log\left(\cfrac{\text{Total number of documents }}{ \ \text{Number of documents with term } t \text{ in it} \ }\right)$]
+
+
+---
+#Converting the text data
+
+
+**TF-IDF Example:**
+
+Consider a document containing 100 words wherein the word cat appears 3 times. 
+
+The term frequency (i.e., tf) for cat is then (3 / 100) = 0.03.
+
+Now, assume we have 10 million documents and the word cat appears in one thousand of these. Then, the inverse document frequency (i.e., idf) is calculated as log(10,000,000 / 1,000) = 4. 
+
+Thus, the Tf-idf weight is the product of these quantities: 0.03 * 4 = 0.12.
+---
+
+
+# Model Selection: A Hierarchy of Choices
+
+There are dozens of choices at each level that effect model quality
+
+--
+
+- Text processing / NLP choices: embedding, tokenization, word counts, padding length…
+
+--
+
+- Hyperparameter options: learning rates &amp; schedules, optimizer, batch size, nodes, layers, etc…
+
+--
+
+Overall thought for this dataset: Keep as much information as possible.
+
+--
+
+- The dataset isn’t that large (~300mb).
+
+--
+
+- Run into some memory challenges on personal computer, but Google Cloud and AWS easily deal with these issues.
+
+--
+
+- Don’t need to perform that much dimensionality reduction if machines can handle it.
+
+
+---
+
+# Optimizers
+
+- Adagrad
+  + Optimizer with parameter-specific learning rates, which are adapted relative to how frequently a parameter gets updated during training. The more updates a parameter receives, the smaller the learning rate.
+- RMSprop
+  + Divide the gradient by a running average of its recent magnitude
+- Adam
+  + Uses the squared gradients to scale the learning rate like RMSprop and it takes advantage of momentum by using moving average of the gradient instead of gradient itself like SGD with momentum
+- Adadelta
+  + A more robust extension of Adagrad that adapts learning rates based on a moving window of gradient updates, instead of accumulating all past gradients
+- Nadam
+  + Nadam is Adam RMSprop with Nesterov momentum
+- Adamax
+  + Variant of Adam based on the infinity norm
+
+
+---
+
+# Which Optimizer to choose?
+
+Compare performance: in sample accuracy / loss &amp; out of sample accuracy / loss
+
+- Four layer, feed forward network with 400 nodes per layer.
+- Dropout rate of 0.2 at each layer.
+- 10 Epochs; Batch size is 32; All the optimizers have their default arguments.
+
+.center[**Adamax had the best performance in 3 out of the 4 criteria.**]
+
+---
+ # Which Optimizer to choose?
+
+![:scaleimgpct 100%](./images/Rplot04.svg)
+
+---
+
+# Hyperparameter Tuning: Batch Size
+
+Batch size for Optimizer testing was 32. Across all optimizers training time per epoch was about 80 seconds. Increasing batch size *significantly* decreased training time.  
+
+**Batch size 32; average about 83 seconds.**
+
+.medium[`Train on 284227 samples, validate on 284227 samples`]                                                               
+.medium[`Epoch 1/5`]                                                                
+.medium[`284227/284227 [==============================] - 88s 310us/step - loss: 0.7446 - acc: 0.7308`]            
+.medium[`Epoch 2/5`]                                                                
+.medium[`284227/284227 [==============================] - 83s 293us/step - loss: 0.5410 - acc: 0.8083`]            
+.medium[`Epoch 3/5`]                                                                
+.medium[`284227/284227 [==============================] - 83s 291us/step - loss: 0.3770 - acc: 0.8689`]            
+.medium[`Epoch 4/5`]                                                                
+.medium[`284227/284227 [==============================] - 83s 291us/step - loss: 0.2611 - acc: 0.9113`]            
+.medium[`Epoch 5/5`]                                                                
+.medium[`284227/284227 [==============================] - 83s 291us/step - loss: 0.1807 - acc: 0.9390`]            
+
+---
+# Hyperparameter Tuning: Batch Size
+
+**Batch size 64; average about 43 seconds.**
+
+.medium[`Train on 284227 samples, validate on 284227 samples`]                                                               
+.medium[`Epoch 1/5`]                                                                
+.medium[`284227/284227 [==============================] - 43s 151us/step - loss: 0.1016 - acc: 0.9661`]            
+.medium[`Epoch 2/5`]                                                                
+.medium[`284227/284227 [==============================] - 43s 151us/step - loss: 0.0674 - acc: 0.9781`]            
+.medium[`Epoch 3/5`]                                                                
+.medium[`284227/284227 [==============================] - 43s 152us/step - loss: 0.0531 - acc: 0.9826`]            
+.medium[`Epoch 4/5`]                                                                
+.medium[`284227/284227 [==============================] - 43s 151us/step - loss: 0.0427 - acc: 0.9862`]            
+.medium[`Epoch 5/5`]                                                                
+.medium[`284227/284227 [==============================] - 43s 150us/step - loss: 0.0373 - acc: 0.9880`]            
+
+---
+
+# Hyperparameter Tuning: Batch Size
+
+**Batch size 1024; average about 12 seconds.**
+
+.medium[`Train on 284227 samples, validate on 284227 samples`]                                                               
+.medium[`Epoch 1/5`]                                                                
+.medium[`284227/284227 [==============================] - 15s 53us/step - loss: 0.0401 - acc: 0.9874`]            
+.medium[`Epoch 2/5`]                                                                
+.medium[`284227/284227 [==============================] - 12s 43us/step - loss: 0.0238 - acc: 0.9925`]            
+.medium[`Epoch 3/5`]                                                                
+.medium[`284227/284227 [==============================] - 12s 43us/step - loss: 0.0211 - acc: 0.9934`]            
+.medium[`Epoch 4/5`]                                                                
+.medium[`284227/284227 [==============================] - 12s 42us/step - loss: 0.0178 - acc: 0.9945`]            
+.medium[`Epoch 5/5`]                                                                
+.medium[`284227/284227 [==============================] - 12s 43us/step - loss: 0.0161 - acc: 0.9947`]            
+
+
+
+---
+
+# Hyperparameter Tuning: Batch Size
+
+**Some guesses:** 
+
+- The GPU can probably do the linear algebra on 1024/2048 row matrix almost as quickly as a 32 row matrix.
+
+--
+
+- However, there are significantly more batches if the batch size is lower; creating a bottleneck as it tries to process (568454/32) = 17765 batches. With a batch size of 1024/2048 the the GPU only has to process 556/278 batches.
+
+--
+
+- However, according a paper&lt;sup&gt;1&lt;/sup&gt; (and stackexchange post): “It has been observed in practice that using a larger batch there is a degradation in the quality of the model, as measured by its ability to generalize.”
+  + “Numerical evidence that supports the view that large-batch methods tend to converge to sharp minimizers of the training and testing functions - and as is well known, sharp minima lead to poorer generalization.”
+
+
+.footnote-blue[
+
+
+.small[[1] On Large-Batch Training for Deep Learning: Generalization Gap and Sharp Minima  (https://arxiv.org/abs/1609.04836)]                   
+]
+
+---
+# Hyperparameter Tuning: Regularization
+
+- Everything conducted so far was using a dropout of 0.2.
+
+- Clear evidence of overfitting for some of the previous testing.
+
+&lt;iframe src="DO20.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+---
+
+# Hyperparameter Tuning: Regularization
+
+- No regularization 
+
+- Nearly no learning is being completed.
+
+&lt;iframe src="overfit.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+
+ 
+---
+# Hyperparameter Tuning: Regularization
+
+- Bump up both the L1 and L2 to 0.002, with dropout 0.2. 
+
+- Nearly no learning is being completed.
+
+&lt;iframe src="NoLearn.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+
+
+---
+
+# Hyperparameter Tuning: Regularization
+
+- Try dropout 0.3. 
+
+- Overfitting still prevelant, but not nearly as bad.
+
+&lt;iframe src="justdo.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+
+
+---
+ 
+
+# Hyperparameter Tuning: Regularization
+
+- Dropout 0.3; L1 = 0.002. 
+
+- Learning is slow.
+
+&lt;iframe src="DOL1.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+
+---
+
+ 
+
+# Hyperparameter Tuning: Regularization
+
+- Dropout 0.3; L2 = 0.002. 
+
+- Good combination of learning and no overfitting.
+
+&lt;iframe src="L2DO.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+
+---
+
+
+# Let's finally make a choice
+
+- Recap: dropout 0.3; L2 = 0.002; Optimizer: adamax; callback: reduce_lr_on_plateau; batch size = 8192; 60 epochs; 700 nodes. **Around 80% accuracy.**
+
+
+&lt;iframe src="goodfit.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+
+---
+
+# Model Performance
+
+- Conditional on `\(y\)`, model does a fairly decent job of prediction.
+
+- Clear over-prediction of `\(y = 5\)`. Possibly because of the distribution? Maybe problem is not the distribution, but may need more samples from `\(y \neq 5\)`. They do exist...
+
+<div align="center">
+<div id="htmlwidget-49c8fa1467f259b965df" style="width:100%;height:400px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-49c8fa1467f259b965df">{"x":{"data":[{"x":[1,2,3,4,5],"y":[1,2,3,4,5],"z":[[0.763829787234043,0.0851063829787234,0.0553191489361702,0.0074468085106383,0.131914893617021],[0.175531914893617,0.5,0.140425531914894,0.0436170212765957,0.182978723404255],[0.0606382978723404,0.0723404255319149,0.562765957446809,0.114893617021277,0.231914893617021],[0.00957446808510638,0.0138297872340426,0.0617021276595745,0.525531914893617,0.431914893617021],[0.00425531914893617,0,0.0074468085106383,0.0308510638297872,1]],"text":[["pi: 0.722<br />yhat: 1<br />y: 1<br />pi: 0.722","pi: 0.084<br />yhat: 2<br />y: 1<br />pi: 0.084","pi: 0.056<br />yhat: 3<br />y: 1<br />pi: 0.056","pi: 0.011<br />yhat: 4<br />y: 1<br />pi: 0.011","pi: 0.128<br />yhat: 5<br />y: 1<br />pi: 0.128"],["pi: 0.169<br />yhat: 1<br />y: 2<br />pi: 0.169","pi: 0.474<br />yhat: 2<br />y: 2<br />pi: 0.474","pi: 0.136<br />yhat: 3<br />y: 2<br />pi: 0.136","pi: 0.045<br />yhat: 4<br />y: 2<br />pi: 0.045","pi: 0.176<br />yhat: 5<br />y: 2<br />pi: 0.176"],["pi: 0.061<br />yhat: 1<br />y: 3<br />pi: 0.061","pi: 0.072<br />yhat: 2<br />y: 3<br />pi: 0.072","pi: 0.533<br />yhat: 3<br />y: 3<br />pi: 0.533","pi: 0.112<br />yhat: 4<br />y: 3<br />pi: 0.112","pi: 0.222<br />yhat: 5<br />y: 3<br />pi: 0.222"],["pi: 0.013<br />yhat: 1<br />y: 4<br />pi: 0.013","pi: 0.017<br />yhat: 2<br />y: 4<br />pi: 0.017","pi: 0.062<br />yhat: 3<br />y: 4<br />pi: 0.062","pi: 0.498<br />yhat: 4<br />y: 4<br />pi: 0.498","pi: 0.410<br />yhat: 5<br />y: 4<br />pi: 0.410"],["pi: 0.008<br />yhat: 1<br />y: 5<br />pi: 0.008","pi: 0.004<br />yhat: 2<br />y: 5<br />pi: 0.004","pi: 0.011<br />yhat: 3<br />y: 5<br />pi: 0.011","pi: 0.033<br />yhat: 4<br />y: 5<br />pi: 0.033","pi: 0.944<br />yhat: 5<br />y: 5<br />pi: 0.944"]],"colorscale":[[0,"#FFFF00"],[0.00425531914893617,"#FFFE00"],[0.0074468085106383,"#FFFE00"],[0.00957446808510638,"#FFFD00"],[0.0138297872340426,"#FFFD00"],[0.0308510638297872,"#FFF900"],[0.0436170212765957,"#FFF700"],[0.0553191489361702,"#FFF500"],[0.0606382978723404,"#FFF400"],[0.0617021276595745,"#FFF400"],[0.0723404255319149,"#FFF200"],[0.0851063829787234,"#FFF000"],[0.114893617021277,"#FFEA00"],[0.131914893617021,"#FFE700"],[0.140425531914894,"#FFE600"],[0.175531914893617,"#FFDF00"],[0.182978723404255,"#FFDE00"],[0.231914893617021,"#FFD500"],[0.431914893617021,"#FFAF00"],[0.5,"#FFA200"],[0.525531914893617,"#FF9D00"],[0.562765957446809,"#FF9500"],[0.763829787234043,"#FF6800"],[1,"#FF0000"]],"type":"heatmap","showscale":false,"autocolorscale":false,"showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5],"y":[1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5],"text":[0.722,0.084,0.056,0.011,0.128,0.169,0.474,0.136,0.045,0.176,0.061,0.072,0.533,0.112,0.222,0.013,0.017,0.062,0.498,0.41,0.008,0.004,0.011,0.033,0.944],"hovertext":["yhat: 1<br />y: 1<br />pi: 0.722","yhat: 2<br />y: 1<br />pi: 0.084","yhat: 3<br />y: 1<br />pi: 0.056","yhat: 4<br />y: 1<br />pi: 0.011","yhat: 5<br />y: 1<br />pi: 0.128","yhat: 1<br />y: 2<br />pi: 0.169","yhat: 2<br />y: 2<br />pi: 0.474","yhat: 3<br />y: 2<br />pi: 0.136","yhat: 4<br />y: 2<br />pi: 0.045","yhat: 5<br />y: 2<br />pi: 0.176","yhat: 1<br />y: 3<br />pi: 0.061","yhat: 2<br />y: 3<br />pi: 0.072","yhat: 3<br />y: 3<br />pi: 0.533","yhat: 4<br />y: 3<br />pi: 0.112","yhat: 5<br />y: 3<br />pi: 0.222","yhat: 1<br />y: 4<br />pi: 0.013","yhat: 2<br />y: 4<br />pi: 0.017","yhat: 3<br />y: 4<br />pi: 0.062","yhat: 4<br />y: 4<br />pi: 0.498","yhat: 5<br />y: 4<br />pi: 0.410","yhat: 1<br />y: 5<br />pi: 0.008","yhat: 2<br />y: 5<br />pi: 0.004","yhat: 3<br />y: 5<br />pi: 0.011","yhat: 4<br />y: 5<br />pi: 0.033","yhat: 5<br />y: 5<br />pi: 0.944"],"textfont":{"size":11.3385826771654,"color":"rgba(0,0,0,1)"},"type":"scatter","mode":"text","hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1],"y":[1],"name":"99_d28b2c3eb6e57cf1b94eb850a3af3dc5","type":"scatter","mode":"markers","opacity":0,"hoverinfo":"skip","showlegend":false,"marker":{"color":[0,1],"colorscale":[[0,"#FFFF00"],[0.0526315789473684,"#FFF500"],[0.105263157894737,"#FFEC00"],[0.157894736842105,"#FFE200"],[0.210526315789474,"#FFD900"],[0.263157894736842,"#FFCF00"],[0.315789473684211,"#FFC500"],[0.368421052631579,"#FFBB00"],[0.421052631578947,"#FFB100"],[0.473684210526316,"#FFA700"],[0.526315789473684,"#FF9C00"],[0.578947368421053,"#FF9200"],[0.631578947368421,"#FF8700"],[0.68421052631579,"#FF7B00"],[0.736842105263158,"#FF6F00"],[0.789473684210526,"#FF6200"],[0.842105263157895,"#FF5400"],[0.894736842105263,"#FF4300"],[0.947368421052632,"#FF2D00"],[1,"#FF0000"]],"colorbar":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"thickness":23.04,"title":"pi","titlefont":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"tickmode":"array","ticktext":["0.25","0.50","0.75"],"tickvals":[0.261702127659574,0.527659574468085,0.793617021276596],"tickfont":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"ticklen":2,"len":0.5}},"xaxis":"x","yaxis":"y","frame":null}],"layout":{"margin":{"t":23.3059360730594,"r":7.30593607305936,"b":37.2602739726027,"l":31.4155251141553},"plot_bgcolor":"rgba(235,235,235,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.25,5.75],"tickmode":"array","ticktext":["1","2","3","4","5"],"tickvals":[1,2,3,4,5],"categoryorder":"array","categoryarray":["1","2","3","4","5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"yhat","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.25,5.75],"tickmode":"array","ticktext":["1","2","3","4","5"],"tickvals":[1,2,3,4,5],"categoryorder":"array","categoryarray":["1","2","3","4","5"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(255,255,255,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"y","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":null,"line":{"color":null,"width":0,"linetype":[]},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"2fd46aab7e36":{"fill":{},"x":{},"y":{},"label":{},"type":"heatmap"},"2fd4798e3502":{"x":{},"y":{},"label":{}}},"cur_data":"2fd46aab7e36","visdat":{"2fd46aab7e36":["function (y) ","x"],"2fd4798e3502":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+
+
+---
+
+# Data Distribution
+
+.center[.Large[The dataset is highly skewed toward 5-star ratings]]
+ 
+
+.center[
+![:scaleimgpct 65%](./images/dist1.svg)
+]
+
+---
+# Data Distribution
+
+.center[We removed a sampling of reviews with ratings 4 and 5 to flatten out the distribution.]
+ 
+.center[
+![:scaleimgpct 65%](./images/dist2.svg)
+]
+ 
+---
+# Data Distribution
+
+- Much worse performance, 65%, but not awful.
+
+- We were worried about the model over-predicting the `\(4\)` and `\(5\)` star reviews, which it does, but the problem may not be as bad as we thought (see confusion matrix).
+
+&lt;iframe src="remove.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+
+ 
+
+---
+
+# Summary Data
+
+Recall we have both the full reviews and the summaries as well.
+
+
+
+&lt;table class="table" style="font-size: 18px; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Column &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Example &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: thistle !important;"&gt; Product Rating &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: thistle !important;"&gt; 5 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: thistle !important;"&gt; Summary &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: thistle !important;"&gt; Good Quality Dog Food &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 50 em; font-weight: bold;background-color: thistle !important;"&gt; Full Review &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10 em; background-color: thistle !important;"&gt; I have bought several of the Vitality canned dog food products and have found them all to be of good quality. The product looks more like a stew than a processed meat and it smells better. My Labrador is finicky and she appreciates this product better than  most. &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+- A natural question to ask is how predictive is the model built on summary data?
+
+- We will use the preferred parameters as described previously, with some slight tweaks (fewer epochs, smaller batch sizes).
+
+---
+
+# Summary Data
+
+.center[**Out-of-Sample Accuracy by Text Processing Technique**]
+
+
+
+&lt;table class="table" style="font-size: 32px; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Text Processing Technique &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Summary Text &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Full Text &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 15em; background-color: #e7ebea !important;"&gt; Bag-of-words (count) &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #e7ebea !important;"&gt; 0.7182 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #e7ebea !important;"&gt; 0.7743 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 15em; background-color: #cbd7d5 !important;"&gt; Bag-of-words (TFIDF) &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #cbd7d5 !important;"&gt; 0.7282 &lt;/td&gt;
+   &lt;td style="text-align:center;width: 10em; background-color: #cbd7d5 !important;"&gt; 0.7901 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+- Computationally, the summary and full text models are roughly equivalent. We are using 3,000 words total from each corpus.
+
+- Can obtain somewhat close results even though we use less data. Tradeoffs may exist where we may need to use a smaller set of data. This gives us an idea how comparable the results are.
+---
+
+# Binary Model
+
+- A two star Amazon rating is pretty bad; likewise a four star rating is very good.
+- Remove the three stars (42,640); combine the `\(1\)` and `\(2\)` stars &amp; the `\(4\)` and `\(5\)` stars.
+- Loss is now binary crossentropy with a sigmoid activation at the last layer. Everything else is the same. **95% Out of sample accuracy**
+
+
+
+&lt;iframe src="binary.html" width="100%" height="400" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"&gt; &lt;/iframe&gt;
+---
+# Binary Model
+
+.center[.large[Model Performance on Twitter Data]]
+
+-  We project the binary model from Amazon Food Reviews onto a 20K random sample of Sentiment 140 Twitter data
+
+
+.center[
+&lt;table class="table" style="font-size: 24px; width: auto !important; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Amazon Food Reviews &lt;/th&gt;
+   &lt;th style="text-align:center;background-color: #d0af95 !important;text-align: center;"&gt; Twitter &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #cbd7d5 !important;"&gt; great &lt;/td&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #cbd7d5 !important;"&gt; not &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #e7ebea !important;"&gt; good &lt;/td&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #e7ebea !important;"&gt; i &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #cbd7d5 !important;"&gt; not &lt;/td&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #cbd7d5 !important;"&gt; go &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #e7ebea !important;"&gt; love &lt;/td&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #e7ebea !important;"&gt; just &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #cbd7d5 !important;"&gt; best &lt;/td&gt;
+   &lt;td style="text-align:center;width: 11em; background-color: #cbd7d5 !important;"&gt; get &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+---
+# Binary Model
+
+- The data differ in distribution by sentiment and nature of frequently used words.
+
+
+.center[
+![:scaleimgpct 65%](./images/AT.svg)
+]
+ 
+ 
+---
+# Binary Model
+
+.center[.small[Bad results, around ~49%]]
+
+
+- Clearly the distribution for Twitter data is much different than the Amazon data.
+
+---
+
+#Next Steps
+
+- Build N-grams model and compare with bag-of-words. Try some different, more sophisticated NLP techniques.
+
+- Investigate alternative types of neural net structures (e.g. convolutional neural network, LTSM).
+
+- Investigate other datasets, such as Twitter sentiment, IMDB, Yelp... Use our Amazon weights and attach a custom layer for each of these other sets. Compare the results.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();</script>
+
+<script>
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

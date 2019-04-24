@@ -1,0 +1,18 @@
+
+
+In order to knit the included Rmd file you will need to install xaringan.
+
+You should be able to install using "Tools -> Install Packages...". 
+Or you can use:
+devtools::install_github("yihui/xaringan")
+
+You may also need to install the package servr
+
+After installation knit (knit to moon_reader) the Rmd file and 'Open in Browser'. You can then compare the Rmd file contents with the HTML slides.
+
+----------
+
+One more note. For those of you using keras and building a model that take a long time to train, please save a trained model using "save_model_hdf5" and load that model for your project document. Include the code that trains the model, but don't have it execute on knit.
+
+save_model_hdf5(model,"model_file_name.h5")
+load_model_hdf5("model_file_name.h5")
